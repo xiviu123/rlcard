@@ -1,4 +1,4 @@
-from typing import List
+from typing import Iterable, List
 from .card import Card
 import rlcard
 import os
@@ -143,9 +143,19 @@ def encode_melds(melds: List[List[Card]]) -> np.ndarray:
 rank_to_deadwood_value = {"A": 15, "2": 5, "3": 5, "4": 5, "5": 5, "6": 5, "7": 5, "8": 5, "9": 5,
                           "T": 10, "J": 10, "Q": 10, "K": 10}
 
-def get_deadwood_value(card: Card) -> int:
+def get_deadwood_value(card: Card, speto_cards: List[Card]) -> int:
     rank = card.rank
     deadwood_value = rank_to_deadwood_value.get(rank, 10)  # default to 10 is key does not exist
-    if card.speto:
-        deadwood_value = deadwood_value + 50
+    if card in speto_cards:
+        deadwood_value  = deadwood_value + 50
     return deadwood_value
+
+def get_deadwood(hand: Iterable[Card], meld_cluster: List[Iterable[Card]]) -> List[Card]:
+    meld_cards = [card for meld_pile in meld_cluster for card in meld_pile]
+    deadwood = [card for card in hand if card not in meld_cards]
+    return deadwood
+
+def get_deadwood_count(hand: List[Card], meld_cluster: List[Iterable[Card]]) -> int:
+    deadwood = get_deadwood(hand=hand, meld_cluster=meld_cluster)
+    deadwood_values = [get_deadwood_value(card) for card in deadwood]
+    return sum(deadwood_values)

@@ -18,9 +18,9 @@ class Card:
         '''
         self.suit = suit
         self.rank = rank
-        self.speto = False
-        if (suit == 'C' and rank == "2") and (suit == 'S' and rank == "Q"):
-            self.speto = True
+        # self.speto = False
+        # if (suit == 'C' and rank == "2") and (suit == 'S' and rank == "Q"):
+        #     self.speto = True
 
         self.discard_round = 0
         self.discard_uid = -1

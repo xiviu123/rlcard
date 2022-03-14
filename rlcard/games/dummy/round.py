@@ -32,6 +32,7 @@ class DummyRound:
         self.players = [DummyPlayer(player_id=id, np_random=self.np_random) for id in range(num_players) ]
         self.current_player_id = (dealer_id + 1) % num_players
         self.is_over = False
+        self.card_meld_by_player = {}
         self.move_sheet = []  # type: List[DummyMove]
         player_dealing = DummyPlayer(player_id=dealer_id, np_random=self.np_random)
         shuffled_deck = self.dealer.shuffled_deck
@@ -69,6 +70,7 @@ class DummyRound:
         for meld in self.dealer.melds:
             if len(list(set(meld) - set(cards))) == 0:
                 meld.append(card_deposit)
+                self.card_meld_by_player[utils.get_card_id(card_deposit)] = self.current_player_id
                 break
 
     def meld_card(self, action: MeldCardAction):
@@ -82,6 +84,7 @@ class DummyRound:
             if card in current_player.known_cards:
                 current_player.known_cards.remove(card)
             current_player.remove_card_from_hand(card)
+            self.card_meld_by_player[utils.get_card_id(card)] = self.current_player_id
         
         self.dealer.melds.append(cards)
 
@@ -123,6 +126,8 @@ class DummyRound:
                     index = i
                 else:
                     index = i if i < index else index
+
+            self.card_meld_by_player[utils.get_card_id(card)] = self.current_player_id
 
         if index > -1:
             know_cards = list(set(self.dealer.discard_pile[index: len(self.dealer.discard_pile)]) - set(discard))

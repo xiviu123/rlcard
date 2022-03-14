@@ -27,8 +27,13 @@ class DummyScorer:
         Returns:
             payoff (int or float): payoff for player (higher is better)
         '''
-        score =  player.score - sum([utils.get_deadwood_value(card) for card in player.hand])
+        score =  player.score - sum([utils.get_deadwood_value(card, game.round.dealer.speto_cards) for card in player.hand])
         
+        for card_id in game.round.card_meld_by_player:
+            if game.round.card_meld_by_player[card_id] == player.player_id:
+                card = utils.get_card(card_id)
+                score = score + utils.get_deadwood_value(card, game.round.dealer.speto_cards)
+
         # payoff is 1.0 if player gins
         # payoff is 0.2 if player knocks
         # payoff is -deadwood_count / 100 if otherwise

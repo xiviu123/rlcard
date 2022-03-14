@@ -35,7 +35,7 @@ class TestDummyEnv(unittest.TestCase):
     def test_run(self):
         env = rlcard.make('dummy')
         env.set_agents([RandomAgent(env.num_actions) for _ in range(env.num_players)])
-        trajectories, payoffs = env.run(is_training=False)
+        trajectories, payoffs = env.run(is_training=True)
         self.assertEqual(len(trajectories), 2)
         
         print(payoffs)

@@ -4,6 +4,7 @@ from .player import DummyPlayer
 class DummyDealer:
     def __init__(self, np_random) -> None:
         self.np_random = np_random
+        self.speto_cards = []
         self.melds = [] # type List[List[Card]]
         self.discard_pile = []  # type: List[Card]
         self.shuffled_deck = utils.get_deck()  # keep a copy of the shuffled cards at start of new hand
@@ -17,10 +18,14 @@ class DummyDealer:
             num (int): The number of cards to be dealt
         '''
         for _ in range(num):
-            player.hand.append(self.stock_pile.pop())
+            card = self.stock_pile.pop()
+            if card.get_index() == "SQ" or card.get_index() == "C2":
+                self.speto_cards.append(card)
+            player.hand.append(card)
         player.did_populate_hand()
 
     def deal_first_card(self):
         first_card = self.stock_pile.pop()
-        first_card.speto = True
+        if not first_card in self.speto_cards:
+            self.speto_cards.append(first_card)
         self.discard_pile.append(first_card)

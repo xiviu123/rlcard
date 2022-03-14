@@ -1,4 +1,5 @@
 import unittest
+from rlcard.models.dummy_rule_models import DummyRuleModel
 
 from rlcard.models.model import Model
 from rlcard.models.pretrained_models import LeducHoldemCFRModel
@@ -110,6 +111,11 @@ class TestModel(unittest.TestCase):
     def test_gin_rummy_novice_model(self):
         model = GinRummyNoviceRuleModel()
         self.assertIsInstance(model, GinRummyNoviceRuleModel)
+        self.assertIsInstance(model.agents, list)
+
+    def test_dummy_model(self):
+
+        model = DummyRuleModel()
         self.assertIsInstance(model.agents, list)
 
 

@@ -16,7 +16,7 @@ class DummyEnv(Env):
         self.name = 'dummy'
         self.game = Game()
         super().__init__(config=config)
-        self.state_shape = [[5, 52] for _ in range(self.num_players)]
+        self.state_shape = [[6, 52] for _ in range(self.num_players)]
         self.action_shape = [None for _ in range(self.num_players)]
 
     def _extract_state(self, state):  # 200213 don't use state ???
@@ -35,7 +35,7 @@ class DummyEnv(Env):
                              unknown cards (likewise)  # is this needed ??? 200213
         '''
         if self.game.is_over():
-            obs = np.array([self._utils.encode_cards([]) for _ in range(5)])
+            obs = np.array([self._utils.encode_cards([]) for _ in range(6)])
             extracted_state = {'obs': obs, 'legal_actions': self._get_legal_actions()}
             extracted_state['raw_legal_actions'] = list(self._get_legal_actions().keys())
             extracted_state['raw_obs'] = obs
@@ -51,16 +51,19 @@ class DummyEnv(Env):
             current_player = self.game.get_current_player()
             opponent = self.game.round.players[(current_player.player_id + 1) % self.num_players]
             known_cards = opponent.known_cards
-            meld_cards = self.game.round.dealer.melds
+            meld_cards = [card for meld in self.game.round.dealer.melds  for card in meld]
             unknown_cards = stock_pile + [card for card in opponent.hand if card not in known_cards]
+            speto_cards = self.game.round.dealer.speto_cards
+
+            speto_cards_rep = self._utils.encode_cards(speto_cards)
             hand_rep = self._utils.encode_cards(current_player.hand)
             top_discard_rep = self._utils.encode_cards(top_discard)
-            meld_cards_rep = self._utils.encode_melds(meld_cards)
+            meld_cards_rep = self._utils.encode_cards(meld_cards)
             known_cards_rep = self._utils.encode_cards(known_cards)
             unknown_cards_rep = self._utils.encode_cards(unknown_cards)
-            rep = [hand_rep, top_discard_rep, meld_cards_rep, known_cards_rep, unknown_cards_rep]
-            # obs = np.array(rep)
-            obs = np.concatenate((hand_rep, top_discard_rep, meld_cards_rep, known_cards_rep, unknown_cards_rep))
+            rep = [hand_rep, speto_cards_rep, meld_cards_rep, top_discard_rep, known_cards_rep, unknown_cards_rep]
+            obs = np.array(rep)
+            # obs = np.concatenate((hand_rep,  speto_cards_rep, top_discard_rep, known_cards_rep, unknown_cards_rep))
             legal_actions = self._get_legal_actions()
             extracted_state = {'obs': obs, 'legal_actions': legal_actions, 'raw_legal_actions': list(legal_actions.keys())}
             extracted_state['raw_obs'] = obs

@@ -61,7 +61,7 @@ class DummyGame:
         
         self.actions.append(action)
 
-        print("uid: {uid}, action: {action}, hand: {hand}, discard_pile: {discard_pile}, stoke_pile: {stock}, know_card= {know_card}".format(uid=player.player_id, action=self.get_last_action(), hand=",".join([c.get_index() for c in player.hand]), discard_pile=",".join([c.get_index() for c in self.round.dealer.discard_pile]), stock=len(self.round.dealer.stock_pile), know_card = ",".join([c.get_index() for c in player.known_cards])))
+        # print("uid: {uid}, action: {action}, hand: {hand}, discard_pile: {discard_pile}, stoke_pile: {stock}, know_card= {know_card}, owned_meld = {owned_meld}".format(uid=player.player_id, action=self.get_last_action(), hand=",".join([c.get_index() for c in player.hand]), discard_pile=",".join([c.get_index() for c in self.round.dealer.discard_pile]), stock=len(self.round.dealer.stock_pile), know_card = ",".join([c.get_index() for c in player.known_cards]), owned_meld=",".join(["{card_id}:{uid}".format(card_id=utils.get_card(card_id).get_index(), uid=self.round.card_meld_by_player[card_id])  for card_id in self.round.card_meld_by_player])))
         next_player_id = self.round.current_player_id
         next_state = self.get_state(player_id=next_player_id)
         return next_state, next_player_id
