@@ -1,13 +1,11 @@
 import unittest
 from rlcard.games.dummy.game import DummyGame as Game
-from rlcard.games.dummy.utils import utils as utils
-from rlcard.games.dummy.utils import melding as melding
 
 
 import numpy as np
-from rlcard.games.dummy.utils.action_event import ActionEvent, MeldCardAction, TakeCardAction
+from rlcard.games.dummy.action_event import ActionEvent
 
-from rlcard.games.dummy.utils.card import Card
+from rlcard.games.base import Card
 
 class TestDummyGame(unittest.TestCase):
     def test_get_num_players(self):
@@ -83,7 +81,7 @@ class TestDummyGame(unittest.TestCase):
         # print("know_card= {know_card}".format(know_card = len(player.known_cards)))
 
 
-    def _1test_step(self):
+    def test_step(self):
         game = Game()
         _, current_player = game.init_game()
         # opponent_player = (current_player + 1) % 2
@@ -103,13 +101,6 @@ class TestDummyGame(unittest.TestCase):
             # current_player = next_player
             # self.assertEqual(next_player, opponent_player)  # keep turn to put card
 
-
-    def test_encode(self):
-        cards = [Card("C", "2"), Card("D", "4"), Card("H", "A")]
-        encode = utils.encode_cards(cards)
-        decode = utils.decode_cards(encode)
-        # print(",".join([c.get_index() for c in decode]))
-        print(encode, decode)
 
 
 

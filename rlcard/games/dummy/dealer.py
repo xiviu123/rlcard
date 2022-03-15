@@ -1,13 +1,15 @@
-from .utils import utils as utils
+from rlcard.games.base import Card
 from .player import DummyPlayer
+from .utils import get_deck
+import numpy as np
+
 
 class DummyDealer:
-    def __init__(self, np_random) -> None:
+    def __init__(self, np_random : np.random.RandomState) -> None:
         self.np_random = np_random
         self.speto_cards = []
-        self.melds = [] # type List[List[Card]]
         self.discard_pile = []  # type: List[Card]
-        self.shuffled_deck = utils.get_deck()  # keep a copy of the shuffled cards at start of new hand
+        self.shuffled_deck = get_deck()
         self.np_random.shuffle(self.shuffled_deck)
         self.stock_pile = self.shuffled_deck.copy()  # type: List[Card]
 
@@ -18,11 +20,11 @@ class DummyDealer:
             num (int): The number of cards to be dealt
         '''
         for _ in range(num):
-            card = self.stock_pile.pop()
+            card : Card = self.stock_pile.pop()
             if card.get_index() == "SQ" or card.get_index() == "C2":
                 self.speto_cards.append(card)
             player.hand.append(card)
-        player.did_populate_hand()
+        # player.did_populate_hand()
 
     def deal_first_card(self):
         first_card = self.stock_pile.pop()

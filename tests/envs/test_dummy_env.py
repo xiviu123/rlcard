@@ -4,7 +4,7 @@ import numpy as np
 
 import rlcard
 from rlcard.agents.random_agent import RandomAgent
-from rlcard.games.dummy.utils.action_event import ActionEvent
+from rlcard.games.dummy.action_event import ActionEvent
 
 class TestDummyEnv(unittest.TestCase):
 

@@ -1,22 +1,23 @@
 from rlcard.envs import Env
 import numpy as np
 from collections import OrderedDict
+from rlcard.games.dummy.move import KnockMove
+
+from rlcard.games.dummy.utils import encode_cards, encode_melds
+
 
 
 
 
 class DummyEnv(Env):
     def __init__(self, config):
-        from rlcard.games.dummy.utils import utils
         from rlcard.games.dummy.game import DummyGame as Game
-        from rlcard.games.dummy.utils.move import KnockMove
-        self._KnockMove = KnockMove
-        self._utils = utils
 
+        self._KnockMove = KnockMove
         self.name = 'dummy'
         self.game = Game()
         super().__init__(config=config)
-        self.state_shape = [[6, 52] for _ in range(self.num_players)]
+        self.state_shape = [[1022] for _ in range(self.num_players)]
         self.action_shape = [None for _ in range(self.num_players)]
 
     def _extract_state(self, state):  # 200213 don't use state ???
@@ -26,44 +27,61 @@ class DummyEnv(Env):
             state (dict): dict of original state
 
         Returns:
-            numpy array: 5 * 52 array
-                         5 : current hand (1 if card in hand else 0)
-                             top_discard (1 if card is top discard else 0)
-                             meld_cards
-                             discards
-                             opponent known cards (likewise)
-                             unknown cards (likewise)  # is this needed ??? 200213
+            numpy array: current_hand: bộ bài trên tay [52]
+                        discard: bộ bài dưới bán đã đánh ra [52]
+                        opponent_ahead_known_cards: Những quân bài lộ của người trước mặt [52]
+                        other_known_cards: Những quân bài lộ của người khác [52]
+                        speto_cards: Bài speto [52]
+                        top_discard: Quân bài mới đánh ra, nếu đánh ra ghép với speto thành cặp và bị ăn sẽ bị trừ điểm [52]
+                        uknown_cards: Tất cả quân bài ẩn dưới lọc và trên tay người chơi khác [52]
+                        current_melds: Tất cả melds của current player [329]
+                        other_melds: Tất cả melds của người khác [329]
+
         '''
         if self.game.is_over():
-            obs = np.array([self._utils.encode_cards([]) for _ in range(6)])
+            obs =  np.zeros(1022, dtype=int)
             extracted_state = {'obs': obs, 'legal_actions': self._get_legal_actions()}
             extracted_state['raw_legal_actions'] = list(self._get_legal_actions().keys())
             extracted_state['raw_obs'] = obs
         else:
             discard_pile = self.game.round.dealer.discard_pile
             stock_pile = self.game.round.dealer.stock_pile
-
-            top_discard = [] 
-            for card in discard_pile:
-                if card.discard_round < self.num_players:
-                    top_discard.append(card)
-
             current_player = self.game.get_current_player()
-            opponent = self.game.round.players[(current_player.player_id + 1) % self.num_players]
-            known_cards = opponent.known_cards
-            meld_cards = [card for meld in self.game.round.dealer.melds  for card in meld]
-            unknown_cards = stock_pile + [card for card in opponent.hand if card not in known_cards]
-            speto_cards = self.game.round.dealer.speto_cards
 
-            speto_cards_rep = self._utils.encode_cards(speto_cards)
-            hand_rep = self._utils.encode_cards(current_player.hand)
-            top_discard_rep = self._utils.encode_cards(top_discard)
-            meld_cards_rep = self._utils.encode_cards(meld_cards)
-            known_cards_rep = self._utils.encode_cards(known_cards)
-            unknown_cards_rep = self._utils.encode_cards(unknown_cards)
-            rep = [hand_rep, speto_cards_rep, meld_cards_rep, top_discard_rep, known_cards_rep, unknown_cards_rep]
-            obs = np.array(rep)
-            # obs = np.concatenate((hand_rep,  speto_cards_rep, top_discard_rep, known_cards_rep, unknown_cards_rep))
+            opponent_ahead = self.game.round.players[(current_player.player_id + 1) % self.num_players]
+            opponent_ahead_known_cards = opponent_ahead.known_cards
+
+            other_known_cards = [card for player in self.game.round.players if (player.player_id != current_player.player_id and player.player_id != current_player.player_id + 1) for card in player.hand]
+            speto_cards = self.game.round.dealer.speto_cards
+            top_discard = []
+            uknown_cards = stock_pile + [card for opponent in self.game.round.players if opponent.player_id !=  current_player.player_id for card in opponent.hand ]
+            current_melds = []
+
+            other_melds = []
+
+            hand_rep = encode_cards(current_player.hand)
+            discard_rep = encode_cards(discard_pile)
+            opponent_ahead_known_cards_rep = encode_cards(opponent_ahead_known_cards)
+            other_known_cards_rep = encode_cards(other_known_cards)
+            speto_cards_rep = encode_cards(speto_cards)
+            top_discard_rep = encode_cards(top_discard)
+            uknown_cards_rep = encode_cards(uknown_cards)
+            current_melds_rep = encode_melds(current_melds)
+            other_melds_rep = encode_melds(other_melds)
+
+
+        
+            
+            obs = np.concatenate((
+                hand_rep,  
+                discard_rep, 
+                opponent_ahead_known_cards_rep, 
+                other_known_cards_rep, 
+                speto_cards_rep,
+                top_discard_rep,
+                uknown_cards_rep,
+                current_melds_rep,
+                other_melds_rep))
             legal_actions = self._get_legal_actions()
             extracted_state = {'obs': obs, 'legal_actions': legal_actions, 'raw_legal_actions': list(legal_actions.keys())}
             extracted_state['raw_obs'] = obs
@@ -81,7 +99,7 @@ class DummyEnv(Env):
             move_sheet = self.game.round.move_sheet
             if move_sheet and isinstance(move_sheet[-1], self._KnockMove):
                 is_game_complete = True
-        payoffs = [0, 0] if not is_game_complete else self.game.judge.scorer.get_payoffs(game=self.game)
+        payoffs = [0, 0] if not is_game_complete else self.game.judge.get_payoffs()
         return np.array(payoffs)
 
     def _decode_action(self, action_id):  # FIXME 200213 should return str
