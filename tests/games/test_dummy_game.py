@@ -6,6 +6,7 @@ import numpy as np
 from rlcard.games.dummy.action_event import ActionEvent
 
 from rlcard.games.base import Card
+from rlcard.games.dummy.melding import *
 
 class TestDummyGame(unittest.TestCase):
     def test_get_num_players(self):
@@ -50,11 +51,11 @@ class TestDummyGame(unittest.TestCase):
 
         game.step(MeldCardAction([card3, card2, card1]))
 
-    def _1test_meld_card(self):
-        hand = [Card("H", "2"),Card("D", "7"), Card("C", "4"), Card("S", "Q"), Card("D", "6"), Card("D", "T"), Card("C", "2"), Card("H", "Q"), Card("H", "6"), Card("D", "4"), Card("H", "A")]
-        discard = [Card("S", "K"), Card("H", "4"), Card("C", "6"), Card("S", "4")]
+    def test_meld_card(self):
+        hand = [Card("H", "A"),Card("H", "2"), Card("H", "3")]
+        discard = [ Card("H", "4")]
 
-        clusters = melding.get_all_melds(hand + discard)
+        clusters = get_all_melds(hand + discard)
             
         for cluster in clusters:
             

@@ -1,14 +1,16 @@
 from rlcard.games.base import Card
 from .player import DummyPlayer
-from .utils import get_deck
+from .utils import get_deck, get_card_id
 import numpy as np
 
 
 class DummyDealer:
-    def __init__(self, np_random : np.random.RandomState) -> None:
+    def __init__(self, num_player : int, np_random : np.random.RandomState) -> None:
         self.np_random = np_random
+        self.num_player = num_player
         self.speto_cards = []
         self.discard_pile = []  # type: List[Card]
+        self.top_discard = []
         self.shuffled_deck = get_deck()
         self.np_random.shuffle(self.shuffled_deck)
         self.stock_pile = self.shuffled_deck.copy()  # type: List[Card]
@@ -31,3 +33,4 @@ class DummyDealer:
         if not first_card in self.speto_cards:
             self.speto_cards.append(first_card)
         self.discard_pile.append(first_card)
+        # self.top_discard[get_card_id(first_card)] = self.num_player - 1
