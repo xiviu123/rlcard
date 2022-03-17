@@ -78,10 +78,11 @@ class DummyRound:
                         if(_r > r):
                             _tup = (player_id, r)
             
-            _p, _ = _tup
+            (_p, _) = _tup
 
             for i in range(len(common_cards)):
-                self.players[_p].add_transation(-50)        
+                if _p is not None:
+                    self.players[_p].add_transation(-50)        
 
         if index > -1:
             card_get = self.dealer.discard_pile[index:]

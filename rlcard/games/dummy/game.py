@@ -92,7 +92,7 @@ class DummyGame:
 
         self.actions.append(action)
 
-        print("uid: {uid}, melds: {meld}, action: {action}, hand: {hand}, discard_pile: {discard_pile}, stoke_pile: {stock}, know_card= {know_card}, top_card= {top_card}".format(uid=player.player_id,meld= ",".join([meld_2_rank_str(meld) for meld in player.melds]), action=self.get_last_action(), hand=",".join([c.get_index() for c in player.hand]), discard_pile=",".join([c.get_index() for c in self.round.dealer.discard_pile]), stock=len(self.round.dealer.stock_pile), know_card = ",".join([c.get_index() for c in player.known_cards]), top_card = ",".join([get_card(card_id).get_index() for (card_id, player_id, r) in self.round.dealer.top_discard])))
+        # print("uid: {uid}, melds: {meld}, action: {action}, hand: {hand}, discard_pile: {discard_pile}, stoke_pile: {stock}, know_card= {know_card}, top_card= {top_card}".format(uid=player.player_id,meld= ",".join([meld_2_rank_str(meld) for meld in player.melds]), action=self.get_last_action(), hand=",".join([c.get_index() for c in player.hand]), discard_pile=",".join([c.get_index() for c in self.round.dealer.discard_pile]), stock=len(self.round.dealer.stock_pile), know_card = ",".join([c.get_index() for c in player.known_cards]), top_card = ",".join([get_card(card_id).get_index() for (card_id, player_id, r) in self.round.dealer.top_discard])))
 
         next_player_id = self.round.current_player_id
         next_state = self.get_state(player_id=next_player_id)

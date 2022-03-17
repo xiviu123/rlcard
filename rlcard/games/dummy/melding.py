@@ -66,6 +66,6 @@ def check_can_deposit(card : Card, meld: List[Card]):
         return meld[0].rank == card.rank
          
     else:
-        return  (get_card_id(meld[0]) == get_card_id(card) + 1  or get_card_id(meld[len(meld) - 1]) == get_card_id(card) - 1) and meld[0].suit == card.suit
+        return  (get_rank_id(meld[0]) == get_rank_id(card) + 1  or get_rank_id(meld[len(meld) - 1]) == get_rank_id(card) - 1) and meld[0].suit == card.suit
 
     

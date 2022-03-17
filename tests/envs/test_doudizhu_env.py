@@ -57,6 +57,8 @@ class TestDoudizhuEnv(unittest.TestCase):
             self.assertEqual(env.game.players[win[0]].role, 'peasant')
             self.assertEqual(env.game.players[win[1]].role, 'peasant')
 
+        print(payoffs)
+
     def test_decode_action(self):
         env = rlcard.make('doudizhu')
         env.reset()

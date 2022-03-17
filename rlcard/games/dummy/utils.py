@@ -148,7 +148,7 @@ def rank_2_meld(ranks: str):
 def check_can_deposit_speto(_cards: List[Card], deposit: Card,  speto_cards: List[Card]):
 
     for speto in speto_cards:
-        cards = sorted(_cards + [speto], key=get_rank_id)
+        cards = sorted(_cards + [deposit , speto], key=get_rank_id)
         if is_run_meld(cards):
             ids = [get_card_id(c) for c in cards]
             deposit_index = ids.index(get_card_id(deposit))
