@@ -115,6 +115,7 @@ class DMCTrainer:
             momentum (float): RMSProp momentum
             epsilon (float): RMSProp epsilon
         '''
+
         self.env = env
 
         self.plogger = FileWriter(

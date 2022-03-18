@@ -6,6 +6,13 @@ import rlcard
 from rlcard.agents.random_agent import RandomAgent
 from rlcard.games.dummy.action_event import ActionEvent
 
+def _get_one_hot_array(num_left_cards, max_num_cards):
+    one_hot = np.zeros(max_num_cards, dtype=np.int8)
+    if num_left_cards >0:
+        one_hot[num_left_cards - 1] = 1
+
+    return one_hot
+
 class TestDummyEnv(unittest.TestCase):
 
     def _1test_reset_and_extract_state(self):
@@ -22,7 +29,7 @@ class TestDummyEnv(unittest.TestCase):
         for legal_action in legal_actions:
             self.assertLessEqual(legal_action, env.num_actions-1)
 
-    def _1test_step(self):
+    def test_step(self):
         env = rlcard.make('dummy')
         state, _ = env.reset()
         action = np.random.choice(list(state['legal_actions'].keys()))
@@ -32,6 +39,9 @@ class TestDummyEnv(unittest.TestCase):
 
     # def test_decode_action(self):
     #     ActionEvent.decode_action(922)
+
+    def test_array(self):
+        print(_get_one_hot_array(0,30))
     def test_run(self):
         env = rlcard.make('dummy')
         env.set_agents([RandomAgent(env.num_actions) for _ in range(env.num_players)])

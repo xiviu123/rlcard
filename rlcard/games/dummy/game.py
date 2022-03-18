@@ -1,3 +1,4 @@
+from rlcard.agents.dmc_agent.utils import act
 from rlcard.games.dummy.action_event import ActionEvent, DepositCardAction, DiscardAction, DrawCardAction, KnockAction, MeldCardAction, TakeCardAction
 import numpy as np
 from rlcard.games.dummy.judge import DummyJudge
@@ -6,6 +7,8 @@ from rlcard.games.dummy.player import DummyPlayer
 from rlcard.games.dummy.round import DummyRound
 from rlcard.games.dummy.utils import get_card, meld_2_rank_str
 
+from typing import Callable
+
 
 class DummyGame:
     def __init__(self) -> None:
@@ -13,6 +16,7 @@ class DummyGame:
         self.np_random = np.random.RandomState()
         self.judge = DummyJudge(game = self)
         self.round = None
+        self.add_action_call :Callable[[int, int], None]= None
 
     def init_game(self):
         dealer_id : int = self.np_random.choice([0, 1])
@@ -92,7 +96,10 @@ class DummyGame:
 
         self.actions.append(action)
 
-        # print("uid: {uid}, melds: {meld}, action: {action}, hand: {hand}, discard_pile: {discard_pile}, stoke_pile: {stock}, know_card= {know_card}, top_card= {top_card}".format(uid=player.player_id,meld= ",".join([meld_2_rank_str(meld) for meld in player.melds]), action=self.get_last_action(), hand=",".join([c.get_index() for c in player.hand]), discard_pile=",".join([c.get_index() for c in self.round.dealer.discard_pile]), stock=len(self.round.dealer.stock_pile), know_card = ",".join([c.get_index() for c in player.known_cards]), top_card = ",".join([get_card(card_id).get_index() for (card_id, player_id, r) in self.round.dealer.top_discard])))
+        # if self.add_action_call is not None:
+        #     self.add_action_call(action.action_id, player.player_id)
+
+        print("uid: {uid}, melds: {meld}, action: {action}, hand: {hand}, discard_pile: {discard_pile}, stoke_pile: {stock}, know_card= {know_card}, top_card= {top_card}".format(uid=player.player_id,meld= ",".join([meld_2_rank_str(meld) for meld in player.melds]), action=self.get_last_action(), hand=",".join([c.get_index() for c in player.hand]), discard_pile=",".join([c.get_index() for c in self.round.dealer.discard_pile]), stock=len(self.round.dealer.stock_pile), know_card = ",".join([c.get_index() for c in player.known_cards]), top_card = ",".join([get_card(card_id).get_index() for (card_id, player_id, r) in self.round.dealer.top_discard])))
 
         next_player_id = self.round.current_player_id
         next_state = self.get_state(player_id=next_player_id)

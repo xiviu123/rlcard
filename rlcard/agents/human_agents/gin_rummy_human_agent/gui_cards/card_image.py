@@ -8,6 +8,10 @@
 import os
 from PIL import Image, ImageTk, ImageDraw
 
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
+
 image_dir = os.path.abspath(os.path.dirname(__file__))
 if not os.path.isdir(os.path.join(image_dir, 'cards_png')):
     print('Downloading images...')

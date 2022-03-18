@@ -62,32 +62,24 @@ class DummyJudge:
             isinstance(last_action, DepositCardAction):
             #Hạ bài MeldCardAction
 
-            if len(hand) <= 3:
-                pass
-
-            if len(current_player.melds) == 0:
-                pass
-            clusters = get_all_melds(hand)
+            if len(hand) > 3 and len(current_player.melds) > 0:
+                clusters = get_all_melds(hand)
             
-            for cluster in clusters:
-                if len(cluster) < len(hand): 
-                    legal_actions.append(MeldCardAction(meld_2_rank(cluster)))
+                for cluster in clusters:
+                    if len(cluster) < len(hand): 
+                        legal_actions.append(MeldCardAction(meld_2_rank(cluster)))
+            
 
         if isinstance(last_action, DrawCardAction) or \
             isinstance(last_action, TakeCardAction) or \
             isinstance(last_action, DepositCardAction) or \
             isinstance(last_action, MeldCardAction) :
             #Guiwr baif DepositCardAction
-            if len(hand) <= 1:
-                pass
-
-            if len(current_player.melds) == 0:
-                pass
-
-            for card in hand:
-                for meld in [meld for player in self.game.round.players for meld in player.melds]:
-                    if check_can_deposit(card, meld):
-                        legal_actions.append(DepositCardAction(meld_2_rank(meld + [card])))
+            if len(hand) > 1 and len(current_player.melds) > 0:
+                for card in hand:
+                    for meld in [meld for player in self.game.round.players for meld in player.melds]:
+                        if check_can_deposit(card, meld):
+                            legal_actions.append(DepositCardAction(meld_2_rank(meld + [card])))
         
             
         if isinstance(last_action, MeldCardAction) or \
