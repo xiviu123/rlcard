@@ -62,7 +62,7 @@ class DummyEnv(Env):
             other_melds = [meld_2_rank(meld) for player in self.game.round.players if (player.player_id != current_player.player_id) for meld in player.melds]
 
             num_player_rep = _get_one_hot_array(self.game.get_num_players(), 4)
-            num_stoke_pile_rep = _get_one_hot_array(len(self.game.round.dealer.discard_pile), 51)
+            num_stoke_pile_rep = _get_one_hot_array(len(self.game.round.dealer.discard_pile), 30)
 
             hand_rep = encode_cards(current_player.hand)
             discard_rep = encode_cards(discard_pile)
@@ -130,7 +130,6 @@ class DummyEnv(Env):
         '''
         legal_actions = self.game.judge.get_legal_actions()
         legal_actions_ids = {action_event.action_id: None for action_event in legal_actions}
-        print(legal_actions_ids)
         return OrderedDict(legal_actions_ids)
 
 

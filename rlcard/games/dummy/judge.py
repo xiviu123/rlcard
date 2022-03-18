@@ -65,6 +65,8 @@ class DummyJudge:
             if len(hand) <= 3:
                 pass
 
+            if len(current_player.melds) == 0:
+                pass
             clusters = get_all_melds(hand)
             
             for cluster in clusters:
@@ -77,6 +79,9 @@ class DummyJudge:
             isinstance(last_action, MeldCardAction) :
             #Guiwr baif DepositCardAction
             if len(hand) <= 1:
+                pass
+
+            if len(current_player.melds) == 0:
                 pass
 
             for card in hand:
