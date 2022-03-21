@@ -43,9 +43,6 @@ class HumanAgent(object):
         return self.step(state), {}
 
 def _print_state(state, action_record):
-    print("++++++++++++")
-    print(state)
-    print("++++++++++++")
     ''' Print out the state
 
     Args:
