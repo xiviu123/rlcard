@@ -3,7 +3,7 @@ from rlcard.games.dummy.game import DummyGame as Game
 
 
 import numpy as np
-from rlcard.games.dummy.action_event import ActionEvent
+from rlcard.games.dummy.action_event import ActionEvent, TakeCardAction
 
 from rlcard.games.base import Card
 from rlcard.games.dummy.melding import *
@@ -51,7 +51,7 @@ class TestDummyGame(unittest.TestCase):
 
         game.step(MeldCardAction([card3, card2, card1]))
 
-    def test_meld_card(self):
+    def _1test_meld_card(self):
         hand = [Card("H", "A"),Card("H", "2"), Card("H", "3")]
         discard = [ Card("H", "4")]
 
@@ -72,17 +72,25 @@ class TestDummyGame(unittest.TestCase):
         card3 = Card("S", "4")
         card4 = Card("S", "5")
 
-        player.hand = [card3, Card("C", "A")]
+        player.hand = [card3, card4]
 
-        game.round.dealer.discard_pile = [card1, Card("H", "4"), card2, card4, Card("C", "Q"), Card("H", "A")]
+        game.round.dealer.discard_pile = [card1, card2]
         game.round.dealer.stock_pile = []
         
         game.step(TakeCardAction([card3, card2, card1, card4]))
 
         # print("know_card= {know_card}".format(know_card = len(player.known_cards)))
 
+    def test_get_legal(self):
+        game = Game()
+        _, current_player = game.init_game()
+        game.round.dealer.discard_pile =  [ Card("D", "3")]
+        game.round.dealer.stock_pile  = [Card("H", "J")]
+        player = game.get_current_player()
+        player.hand = [Card("H", "2"), Card("S", "2"),Card("C", "2")]
+        print(", ".join(a.__str__() for a in game.judge.get_legal_actions()))
 
-    def test_step(self):
+    def _1test_step(self):
         game = Game()
         _, current_player = game.init_game()
         # opponent_player = (current_player + 1) % 2

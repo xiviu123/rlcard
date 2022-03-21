@@ -17,7 +17,7 @@ class DummyEnv(Env):
         self.name = 'dummy'
         self.game = Game()
         super().__init__(config=config)
-        self.state_shape = [[1056] for _ in range(self.num_players)]
+        self.state_shape = [[1055] for _ in range(self.num_players)]
         self.action_shape = [None for _ in range(self.num_players)]
 
     def _extract_state(self, state):  # 200213 don't use state ???
@@ -28,7 +28,7 @@ class DummyEnv(Env):
 
         Returns:
             numpy array: num_player: số người chơi [4]
-                        num_stoke_pile: số quân bài trên lọc [30] 
+                        num_stoke_pile: số quân bài trên lọc [29] 
                         current_hand: bộ bài trên tay [52]
                         discard: bộ bài dưới bán đã đánh ra [52]
                         opponent_ahead_known_cards: Những quân bài lộ của người trước mặt [52]
@@ -41,7 +41,7 @@ class DummyEnv(Env):
 
         '''
         if self.game.is_over():
-            obs =  np.zeros(1056, dtype=int)
+            obs =  np.zeros(1055, dtype=int)
             extracted_state = {'obs': obs, 'legal_actions': self._get_legal_actions()}
             extracted_state['raw_legal_actions'] = list(self._get_legal_actions().keys())
             extracted_state['raw_obs'] = obs
@@ -62,7 +62,7 @@ class DummyEnv(Env):
             other_melds = [meld_2_rank(meld) for player in self.game.round.players if (player.player_id != current_player.player_id) for meld in player.melds]
 
             num_player_rep = _get_one_hot_array(self.game.get_num_players(), 4)
-            num_stoke_pile_rep = _get_one_hot_array(len(self.game.round.dealer.discard_pile), 30)
+            num_stoke_pile_rep = _get_one_hot_array(len(stock_pile), 29)
 
             hand_rep = encode_cards(current_player.hand)
             discard_rep = encode_cards(discard_pile)
@@ -135,6 +135,7 @@ class DummyEnv(Env):
 
 def _get_one_hot_array(num_left_cards, max_num_cards):
     one_hot = np.zeros(max_num_cards, dtype=np.int8)
-    one_hot[num_left_cards - 1] = 1
+    if  num_left_cards >  0:
+        one_hot[num_left_cards - 1] = 1
 
     return one_hot
