@@ -34,7 +34,6 @@ class DummyRuleAgent(object):
         if knock_action_events:
             actions = [x.action_id for x in knock_action_events]
         if discard_action_events:
-            print("CONG HOA XA HOI CHUA NGHIA VIET NAM")
             actions = [x.action_id for x in discard_action_events]
             
 

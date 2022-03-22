@@ -1,13 +1,12 @@
 import unittest
 from rlcard.games.dummy.game import DummyGame as Game
-from rlcard.games.dummy.utils import utils as utils
-from rlcard.games.dummy.utils import melding as melding
 
 
 import numpy as np
-from rlcard.games.dummy.utils.action_event import ActionEvent, MeldCardAction, TakeCardAction
+from rlcard.games.dummy.action_event import ActionEvent, TakeCardAction
 
-from rlcard.games.dummy.utils.card import Card
+from rlcard.games.base import Card
+from rlcard.games.dummy.melding import *
 
 class TestDummyGame(unittest.TestCase):
     def test_get_num_players(self):
@@ -53,10 +52,10 @@ class TestDummyGame(unittest.TestCase):
         game.step(MeldCardAction([card3, card2, card1]))
 
     def _1test_meld_card(self):
-        hand = [Card("H", "2"),Card("D", "7"), Card("C", "4"), Card("S", "Q"), Card("D", "6"), Card("D", "T"), Card("C", "2"), Card("H", "Q"), Card("H", "6"), Card("D", "4"), Card("H", "A")]
-        discard = [Card("S", "K"), Card("H", "4"), Card("C", "6"), Card("S", "4")]
+        hand = [Card("H", "A"),Card("H", "2"), Card("H", "3")]
+        discard = [ Card("H", "4")]
 
-        clusters = melding.get_all_melds(hand + discard)
+        clusters = get_all_melds(hand + discard)
             
         for cluster in clusters:
             
@@ -73,15 +72,23 @@ class TestDummyGame(unittest.TestCase):
         card3 = Card("S", "4")
         card4 = Card("S", "5")
 
-        player.hand = [card3, Card("C", "A")]
+        player.hand = [card3, card4]
 
-        game.round.dealer.discard_pile = [card1, Card("H", "4"), card2, card4, Card("C", "Q"), Card("H", "A")]
+        game.round.dealer.discard_pile = [card1, card2]
         game.round.dealer.stock_pile = []
         
         game.step(TakeCardAction([card3, card2, card1, card4]))
 
         # print("know_card= {know_card}".format(know_card = len(player.known_cards)))
 
+    def test_get_legal(self):
+        game = Game()
+        _, current_player = game.init_game()
+        game.round.dealer.discard_pile =  [Card("H", "K"),  Card("S", "7"), Card("H", "T"),  Card("D", "8")]
+        game.round.dealer.stock_pile  = [Card("H", "J")]
+        player = game.get_current_player()
+        player.hand = [Card("D", "5"), Card("S", "4"),Card("D", "Q"),Card("C", "K"),Card("D", "2"),Card("H", "6"),Card("H", "A"),Card("S", "K")]
+        print(", ".join(a.__str__() for a in game.judge.get_legal_actions()))
 
     def _1test_step(self):
         game = Game()
@@ -103,13 +110,6 @@ class TestDummyGame(unittest.TestCase):
             # current_player = next_player
             # self.assertEqual(next_player, opponent_player)  # keep turn to put card
 
-
-    def test_encode(self):
-        cards = [Card("C", "2"), Card("D", "4"), Card("H", "A")]
-        encode = utils.encode_cards(cards)
-        decode = utils.decode_cards(encode)
-        # print(",".join([c.get_index() for c in decode]))
-        print(encode, decode)
 
 
 

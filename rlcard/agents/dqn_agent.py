@@ -311,7 +311,7 @@ class Estimator(object):
         Returns:
           The calculated loss on the batch.
         '''
-        self.optimizer.zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
 
         self.qnet.train()
 
