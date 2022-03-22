@@ -1,10 +1,11 @@
+from .move import DealHandMove
 from rlcard.games.dummy.action_event import ActionEvent, DepositCardAction, DiscardAction, DrawCardAction, KnockAction, MeldCardAction, TakeCardAction
 import numpy as np
 from rlcard.games.dummy.judge import DummyJudge
 from rlcard.games.dummy.player import DummyPlayer
 
 from rlcard.games.dummy.round import DummyRound
-from rlcard.games.dummy.utils import get_card, meld_2_rank_str
+from rlcard.games.dummy.utils import get_card, get_card_id, meld_2_rank_str
 
 
 class DummyGame:
@@ -13,11 +14,14 @@ class DummyGame:
         self.np_random = np.random.RandomState()
         self.judge = DummyJudge(game = self)
         self.round = None
+        self.add_action_call = None
 
     def init_game(self):
         dealer_id : int = self.np_random.choice([0, 1])
         self.actions = []
-        self.round = DummyRound(dealer_id=dealer_id, num_players=self._num_player, np_random=self.np_random)
+        self.round = DummyRound(dealer_id=dealer_id, num_players=self._num_player, np_random=self.np_random, add_action_call = self.add_action_call)
+        move = DealHandMove(dealer_id)
+        
         for i in range(self._num_player):
             if self._num_player == 2:
                 num = 11
@@ -29,7 +33,13 @@ class DummyGame:
             player = self.round.players[(dealer_id + 1 + i) % 2]
             self.round.dealer.deal_cards(player=player, num=num)
 
-        self.round.dealer.deal_first_card()
+            move.hand_cards[player.player_id] = [get_card_id(c) for c in player.hand]
+
+        move.first_card =  self.round.dealer.deal_first_card()
+        move.stock_pile = self.round.dealer.stock_pile
+        self.round.move_sheet.append(move)
+        if self.add_action_call  is not None:
+            self.add_action_call(move)
 
         current_player_id = self.round.current_player_id
         state = self.get_state(player_id=current_player_id)

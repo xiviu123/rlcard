@@ -33,4 +33,6 @@ class DummyDealer:
         if not first_card in self.speto_cards:
             self.speto_cards.append(first_card)
         self.discard_pile.append(first_card)
+
+        return get_card_id(first_card)
         # self.top_discard[get_card_id(first_card)] = self.num_player - 1

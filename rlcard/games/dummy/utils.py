@@ -96,6 +96,8 @@ def is_set_meld(cards: List[Card]):
     
     return True
     
+def cards_id_2_str(cards: List[int]):
+    return "".join([get_card(card_id).get_index() for card_id in cards])
 def meld_2_rank_str(cards: List[Card]):
     cards = sorted(cards, key=get_rank_id)
 
@@ -144,6 +146,11 @@ def rank_2_meld(ranks: str):
 
 
     pass
+
+def rank_2_meld_id(rank_id: int):
+    ranks = ID_2_ACTION[rank_id]
+    return [get_card_id(c) for c in rank_2_meld(ranks)]
+
 
 def check_can_deposit_speto(_cards: List[Card], deposit: Card,  speto_cards: List[Card]):
 

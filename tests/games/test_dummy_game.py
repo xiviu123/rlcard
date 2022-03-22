@@ -84,10 +84,10 @@ class TestDummyGame(unittest.TestCase):
     def test_get_legal(self):
         game = Game()
         _, current_player = game.init_game()
-        game.round.dealer.discard_pile =  [ Card("D", "3")]
+        game.round.dealer.discard_pile =  [Card("H", "K"),  Card("S", "7"), Card("H", "T"),  Card("D", "8")]
         game.round.dealer.stock_pile  = [Card("H", "J")]
         player = game.get_current_player()
-        player.hand = [Card("H", "2"), Card("S", "2"),Card("C", "2")]
+        player.hand = [Card("D", "5"), Card("S", "4"),Card("D", "Q"),Card("C", "K"),Card("D", "2"),Card("H", "6"),Card("H", "A"),Card("S", "K")]
         print(", ".join(a.__str__() for a in game.judge.get_legal_actions()))
 
     def _1test_step(self):

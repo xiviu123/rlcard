@@ -14,7 +14,7 @@ class TestDummyEnv(unittest.TestCase):
 
         self.assertEqual(state['obs'].size, 208)
     
-    def test_get_legal_actions(self):
+    def _1test_get_legal_actions(self):
         env = rlcard.make('dummy')
         env.set_agents([RandomAgent(env.num_actions) for _ in range(env.num_players)])
         env.reset()
@@ -32,7 +32,7 @@ class TestDummyEnv(unittest.TestCase):
 
     # def test_decode_action(self):
     #     ActionEvent.decode_action(922)
-    def _1test_run(self):
+    def test_run(self):
         env = rlcard.make('dummy')
         env.set_agents([RandomAgent(env.num_actions) for _ in range(env.num_players)])
         trajectories, payoffs = env.run(is_training=True)

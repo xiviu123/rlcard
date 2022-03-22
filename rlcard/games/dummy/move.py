@@ -16,14 +16,16 @@ class PlayerMove(DummyMove):
 
 class DealHandMove(DummyMove):
 
-    def __init__(self, player_dealing: DummyPlayer, shuffled_deck: List[Card]):
+    def __init__(self, player_id: int):
         super().__init__()
-        self.player_dealing = player_dealing
-        self.shuffled_deck = shuffled_deck
+        self.dealer_id = player_id
+        self.first_card = None
+        self.hand_cards = {}
+        self.stock_pile = None
 
     def __str__(self):
-        shuffled_deck_text = " ".join([str(card) for card in self.shuffled_deck])
-        return "{} deal shuffled_deck=[{}]".format(self.player_dealing, shuffled_deck_text)
+        # shuffled_deck_text = " ".join([str(card) for card in self.shuffled_deck])
+        return "DealHandMove"
 
 class DrawCardMove(PlayerMove):
 

@@ -1,3 +1,5 @@
+from math import e
+from examples.human.dummy.game_board import GameBoard
 from rlcard.games.dummy.action_event import ActionEvent
 from rlcard.utils.utils import print_card
 import numpy as np
@@ -17,7 +19,6 @@ class HumanAgent(object):
 
     @staticmethod
     def step(state):
-        print("step")
         ''' Human agent will display the state and make decisions through interfaces
 
         Args:
@@ -26,9 +27,9 @@ class HumanAgent(object):
         Returns:
             action (int): The action decided by human
         '''
-
-        _print_state(state['raw_obs'], state['raw_legal_actions'])
-        print(state['raw_legal_actions'])
+        
+        # _print_state(state['raw_obs'], state['raw_legal_actions'])
+        print("[" + ", ".join(["{}-".format(a) + ActionEvent.decode_action(a).__str__() for a in state['raw_legal_actions']]) + "]")
         action_id = int(input('>> You choose action (integer): '))
         while action_id not in state['legal_actions']:
             print('Action illegel...')
@@ -72,9 +73,6 @@ def _print_state(state, raw_legal_actions):
     '''
     
 
-def action_call(action_id: int, player_id: int):
-    print(action_id, player_id)
-
 
 import rlcard
 import torch
@@ -91,7 +89,10 @@ agent.set_device(device)
 human_agent = HumanAgent(env.num_actions)
 
 env.set_agents([human_agent, agent])
-# env.game.add_action_call = action_call
+
+
+board = GameBoard()
+env.game.add_action_call = board.bridge
 
 
 while (True):

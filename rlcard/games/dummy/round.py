@@ -4,21 +4,23 @@ from .move import DealHandMove, DepositCardMove, DiscardMove, DrawCardMove, Knoc
 from .player import DummyPlayer
 from .utils import check_can_deposit_speto, get_card, get_card_id, is_meld, is_run_meld, is_set_meld, rank_2_meld, ID_2_ACTION
 import numpy as np
+from typing import Callable
 
 
 class DummyRound:
-    def __init__(self, dealer_id: int, num_players: int, np_random) -> None:
+    def __init__(self, dealer_id: int, num_players: int, np_random, add_action_call) -> None:
         self.np_random = np_random
         self.dealer_id = dealer_id
         self.num_players = num_players
+        self.add_action_call = add_action_call
         self.dealer = DummyDealer(self.num_players, self.np_random)
         self.players = [DummyPlayer(player_id=id, np_random=self.np_random) for id in range(num_players) ]
         self.current_player_id = (dealer_id + 1) % num_players
         self.is_over = False
         self.move_sheet = []  # type: List[DummyMove]
-        player_dealing = DummyPlayer(player_id=dealer_id, np_random=self.np_random)
-        shuffled_deck = self.dealer.shuffled_deck
-        self.move_sheet.append(DealHandMove(player_dealing=player_dealing, shuffled_deck=shuffled_deck))
+        # player_dealing = DummyPlayer(player_id=dealer_id, np_random=self.np_random)
+        # shuffled_deck = self.dealer.shuffled_deck
+        # self.move_sheet.append(DealHandMove(player_dealing=player_dealing, shuffled_deck=shuffled_deck))
 
     def get_current_player(self) -> DummyPlayer or None:
         current_player_id = self.current_player_id
@@ -30,9 +32,10 @@ class DummyRound:
         current_player = self.players[self.current_player_id]
         card = self.dealer.stock_pile.pop()
 
-        
-
-        self.move_sheet.append(DrawCardMove(current_player, action=action, card=card))
+        move = DrawCardMove(current_player, action=action, card=card)
+        self.move_sheet.append(move)
+        if self.add_action_call is not None:
+            self.add_action_call(move)
         current_player.add_card_to_hand(card=card)
 
     def takecard(self, action: TakeCardAction):
@@ -95,7 +98,10 @@ class DummyRound:
             current_player.known_cards = current_player.known_cards + know_cards
             self.dealer.discard_pile = self.dealer.discard_pile[0: index]
 
-        self.move_sheet.append(TakeCardMove(current_player, action))
+        move = TakeCardMove(current_player, action)
+        self.move_sheet.append(move)
+        if self.add_action_call is not None:
+            self.add_action_call(move)
 
     def deposit_card(self, action: DepositCardAction):
         current_player = self.players[self.current_player_id]
@@ -125,8 +131,10 @@ class DummyRound:
                 meld.append(card_deposit)
                 break
 
-        self.move_sheet.append(DepositCardMove(current_player, action))
-
+        move = DepositCardMove(current_player, action)
+        self.move_sheet.append(move)
+        if self.add_action_call is not None:
+            self.add_action_call(move)
 
     def meld_card(self, action: MeldCardAction):
         current_player = self.players[self.current_player_id]
@@ -149,11 +157,14 @@ class DummyRound:
         
         current_player.melds.append(cards)
 
-        self.move_sheet.append(MeldCardMove(current_player, action))
+        move = MeldCardMove(current_player, action)
+        self.move_sheet.append(move)
+        if self.add_action_call is not None:
+            self.add_action_call(move)
+
 
     def discard(self, action: DiscardAction):
         current_player = self.players[self.current_player_id]
-        self.move_sheet.append(DiscardMove(current_player, action))
         card = action.card
         current_player.remove_card_from_hand(card=card)
         if card in current_player.known_cards:
@@ -165,8 +176,10 @@ class DummyRound:
         self.dealer.top_discard.append ((get_card_id(card), self.current_player_id, 0))
         self.current_player_id = (self.current_player_id + 1) % self.num_players
 
-        self.move_sheet.append(DiscardMove(current_player, action))
-
+        move = DiscardMove(current_player, action)
+        self.move_sheet.append(move)
+        if self.add_action_call is not None:
+            self.add_action_call(move)
 
     def knock(self, action : KnockAction):
         current_player = self.players[self.current_player_id]
@@ -182,6 +195,9 @@ class DummyRound:
                     if is_meld(meld):
                         current_player.add_transation(50)
                         break
-
-        self.move_sheet.append(KnockMove(current_player, action))
+        
+        move = KnockMove(current_player, action)
+        self.move_sheet.append(move)
+        if self.add_action_call is not None:
+            self.add_action_call(move)
         self.is_over = True
