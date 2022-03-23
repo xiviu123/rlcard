@@ -30,7 +30,12 @@ class HumanAgent(object):
         
         # _print_state(state['raw_obs'], state['raw_legal_actions'])
         print("[" + ", ".join(["{}-".format(a) + ActionEvent.decode_action(a).__str__() for a in state['raw_legal_actions']]) + "]")
-        action_id = int(input('>> You choose action (integer): '))
+        action_id = input('>> You choose action (integer): ')
+        
+        while( not action_id.isdigit()):
+            action_id = input('>> You choose action (integer): ')
+        action_id = int(action_id)
+
         while action_id not in state['legal_actions']:
             print('Action illegel...')
             action_id = int(input('>> Re-choose action (integer): '))
@@ -88,7 +93,7 @@ agent.set_device(device)
 
 human_agent = HumanAgent(env.num_actions)
 
-env.set_agents([human_agent, agent])
+env.set_agents([agent, agent])
 
 
 board = GameBoard()

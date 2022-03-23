@@ -15,7 +15,7 @@ def elegent_form(card):
 
     return suits[card[0]] + rank
 
-def print_card(cards):
+def print_card(cards, known_cards):
     ''' Nicely print a card or list of cards
 
     Args:
@@ -41,11 +41,12 @@ def print_card(cards):
                 space = ' '
             
             color = None if suit == "♠" or suit == "♣" else "red"
+            color_known = color if card not in known_cards else "green"
 
             lines[0].append(colored('┌────┐', color))
             lines[1].append(colored('│{}{} │'.format(rank + suit, space), color))
             lines[2].append(colored('│    │',color))
-            lines[3].append(colored('└────┘', color))
+            lines[3].append(colored('└────┘', color_known))
 
     for line in lines:
         print (''.join(line))
