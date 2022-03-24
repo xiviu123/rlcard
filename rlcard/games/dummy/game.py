@@ -1,6 +1,6 @@
 from typing import List
 import numpy as np
-from rlcard.games.dummy.action_event import ACTION, get_action_str
+from rlcard.games.dummy.action_event import ACTION, get_action
 from rlcard.games.dummy.melding import get_card_str
 from rlcard.games.dummy.round import DummyRound as Round
 from rlcard.games.dummy.utils import meld_2_str
@@ -33,38 +33,65 @@ class DummyGame:
         return state, current_player_id
 
     def get_state(self, player_id: int):
+        player = self.round.players[player_id]
+        opponent = self.round.players[(player_id + 1) %2]
+        
         state = {}
+        state['num_stoke_pile'] = len(self.round.dealer.stock_pile)
+        state['opponent_card_left'] = len(opponent.hand)
+        state['current_hand'] = player.hand
+        state['current_card_left'] = len(player.hand)
+        state['known_cards'] = [c for p in self.round.players for c in p.known_cards]
+        state['unknown_cards'] = self.round.dealer.stock_pile + [c for c in opponent.hand if c not in opponent.known_cards]
+        state['speto_card'] = self.round.dealer.first_card
+        state['just_discard'] = self.round.just_discard
+        state['depositable_cards'] = self.round.depositable_cards
+        state['discard_pile'] = self.round.dealer.discard_pile
+        state['current_meld'] = player.melds
+        state['opponent_meld'] = opponent.melds
+        state['current_score_cards'] = player.score_cards
+        state['opponent_score_cards'] = opponent.score_cards
+        state['current_trans'] = player.transactions
+        state['opponent_trans'] = opponent.transactions
+
         state['player_id'] = player_id
-        state['hand'] = self.round.players[player_id].hand
         return state
 
     def get_num_actions(self):
         return 1093
 
+    def get_num_players(self):
+        return self.num_players
+
+    def get_player_id(self):
+        return self.round.current_player_id
+
     def get_last_action(self) -> int or None:
         return None if len(self.actions) == 0 else self.actions[-1]
 
-    def step(self, action: int):
+    def step(self, action_id: int):
         player  = self.round.players[self.round.current_player_id]
-        if get_action_str(action) == ACTION.DRAW_CARD_ACTION:
-            self.round.draw_card(action)
-        elif get_action_str(action) == ACTION.DEPOSIT_CARD_ACTION:
-            self.round.deposit_card(action)
-        elif get_action_str(action) == ACTION.MELD_CARD_ACTION:
-            self.round.meld_card(action)
-        elif get_action_str(action) == ACTION.TAKE_CARD_ACTION:
-            self.round.take_card(action)
-        elif get_action_str(action) == ACTION.DISCARD_ACTION:
-            self.round.discard(action)
+        (action, rank_id) = get_action(action_id)
+        if action == ACTION.DRAW_CARD_ACTION:
+            self.round.draw_card()
+        elif action == ACTION.DEPOSIT_CARD_ACTION:
+            self.round.deposit_card(rank_id)
+        elif action == ACTION.MELD_CARD_ACTION:
+            self.round.meld_card( rank_id)
+        elif action == ACTION.TAKE_CARD_ACTION:
+            self.round.take_card( rank_id)
+        elif action == ACTION.DISCARD_ACTION:
+            self.round.discard(rank_id)
 
-        elif get_action_str(action) == ACTION.KNOCK_ACTION:
-            self.round.knock(action)
+        elif action == ACTION.KNOCK_ACTION:
+            self.round.knock(rank_id)
        
         else:
-            raise Exception('Unknown step action={}'.format(action))
+            raise Exception('Unknown step action={}'.format(action_id))
 
-        self.actions.append(action)
+        self.actions.append(action_id)
 
+        '''
         print("uid: {uid}, melds: {meld}, action: {action}, hand: {hand}, discard_pile: {discard_pile}, stoke_pile: {stock}, know_card= {know_card}, top_card= {top_card}".format(
             uid=player.player_id,
             meld= ",".join([meld_2_str(meld) for meld in player.melds]), 
@@ -75,6 +102,7 @@ class DummyGame:
             know_card = ",".join([get_card_str(c) for c in player.known_cards]), 
             top_card = ",".join([get_card_str(c) for c in self.round.just_discard])
             ))
+        '''
 
         next_player_id = self.round.current_player_id
         next_state = self.get_state(player_id=next_player_id)
