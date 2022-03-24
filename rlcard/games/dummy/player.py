@@ -1,20 +1,17 @@
-from rlcard.games.base import Card
+from typing import List
 
 
 class DummyPlayer:
-    def __init__(self, player_id: int, np_random) -> None:
-        self.np_random = np_random
-        self.player_id = player_id
+    hand : List[int]
+    melds: List[List[int]]
+    known_cards : List[int]
+    def __init__(self, player_id : int) -> None:
         self.hand = []
-        self.known_cards = []
+        self.player_id  = player_id
         self.melds = []
-        self.transactions = []
+        self.known_cards = []
 
-    def add_card_to_hand(self, card: Card):
-        self.hand.append(card)
-
-    def remove_card_from_hand(self, card: Card):
-        self.hand.remove(card)
-
-    def add_transation(self, score : int):
-        self.transactions.append(score)
+    def add_card_to_hand(self, card_id):
+        self.hand.append(card_id)
+    def remove_card_from_hand(self, card_id):
+        self.hand.remove(card_id)
