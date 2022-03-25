@@ -80,7 +80,8 @@ def _print_state(state):
 
     known_cards = [c for c in state['known_cards'] if c not in current_hand]
 
-    opponent_hand = [None for _ in range(state['opponent_card_left'] - len(known_cards))] + known_cards
+    # opponent_hand = [None for _ in range(state['opponent_card_left'] - len(known_cards))] + known_cards
+    opponent_hand = state['opponent_hand']
     discard_pile = state['discard_pile']
     deck = [None] + discard_pile
 

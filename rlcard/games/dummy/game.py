@@ -47,14 +47,16 @@ class DummyGame:
         state['just_discard'] = self.round.just_discard
         state['depositable_cards'] = self.round.depositable_cards
         state['discard_pile'] = self.round.dealer.discard_pile
-        state['current_meld'] = player.melds
-        state['opponent_meld'] = opponent.melds
-        state['current_score_cards'] = player.score_cards
-        state['opponent_score_cards'] = opponent.score_cards
-        state['current_trans'] = player.transactions
-        state['opponent_trans'] = opponent.transactions
+        state['current_meld'] = player.melds #pretrained
+        state['opponent_meld'] = opponent.melds #pretrained
+        state['current_score_cards'] = player.score_cards #pretrained
+        state['opponent_score_cards'] = opponent.score_cards #pretrained
+        state['current_trans'] = player.transactions #pretrained
+        state['opponent_trans'] = opponent.transactions #pretrained
 
-        state['player_id'] = player_id
+        state['opponent_hand'] = opponent.hand #pretrained
+
+        state['player_id'] = player_id #pretrained
         return state
 
     def get_num_actions(self):
