@@ -85,7 +85,6 @@ class DummyEnv(Env):
                 opponent_score_cards_rep
             ))
 
-            print(len(obs))
 
             extracted_state = OrderedDict({'obs': obs, 'legal_actions': self._get_legal_actions()})
             extracted_state['raw_obs'] = state
@@ -99,7 +98,9 @@ class DummyEnv(Env):
             legal_actions (list): a list of legal actions' id
         '''
         legal_actions = self.game.judge.get_legal_actions()
-        return {action: action for action in legal_actions}
+        legal_actions_ids =  {action: None for action in legal_actions}
+        return OrderedDict(legal_actions_ids)
+
 
     def _decode_action(self, action_id: int):
         return action_id
