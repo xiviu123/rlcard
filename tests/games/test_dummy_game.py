@@ -60,6 +60,21 @@ class TestDummyGame(unittest.TestCase):
             action = np.random.choice(legal_actions)
             _, _ = game.step(action)
 
+    def test_legal_action(self):
+        game = Game()
+        state, current_player_id = game.init_game()
+        current_player = game.round.players[current_player_id]
+        current_player.hand = [10]
+
+        game.round.dealer.discard_pile = [2,3,4]
+
+
+
+        legal_actions = game.judge.get_legal_actions()
+
+        print(legal_actions)
+
+
 
    
 

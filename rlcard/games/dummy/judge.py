@@ -36,7 +36,11 @@ class DummyJudge:
             _melds = get_all_melds(temp_hand)
             for meld in _melds:
                 hand_card = [card for card in meld if card in current_hand]
-                if len(hand_card) > 0 and len(hand_card) < len(meld) and len(hand_card) < len(current_hand):
+                index = np.min(np.where(np.isin(discard_pile, meld)))
+
+                take_card = [c for c in discard_pile[index:] if c not in meld]
+
+                if len(hand_card) > 0 and len(hand_card) < len(meld) and len(hand_card) < len(current_hand) + len(take_card):
                     #add action
                     ranks  = ",".join([str(c) for c in sorted(meld, key=lambda x: (get_rank_id(x), get_suit_id(x)))])
                     legal_actions.append(ID_2_ACTION.index(ranks) + take_card_action_id)
