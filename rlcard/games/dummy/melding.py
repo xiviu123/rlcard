@@ -24,6 +24,17 @@ def get_rank_id(card_id: int):
     (rank_id, _) = get_card(card_id=card_id)
     return rank_id
 
+def can_be_take_with_speto(card, _cards, speto_cards):
+
+    cards = _cards + [card]
+    #set
+
+    hand_by_rank = sorted(cards)
+
+    
+    hand_by_rank = sorted(cards, key=get_rank_id)
+
+
 def get_all_melds(cards : List[int]):
     return get_all_run_melds(cards) + get_all_set_melds(cards)
 

@@ -64,9 +64,9 @@ class TestDummyGame(unittest.TestCase):
         game = Game()
         state, current_player_id = game.init_game()
         current_player = game.round.players[current_player_id]
-        current_player.hand = [10]
+        current_player.hand = [4]
 
-        game.round.dealer.discard_pile = [2,3,4]
+        game.round.dealer.discard_pile = [5, 1,2]
 
 
 

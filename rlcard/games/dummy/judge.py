@@ -36,9 +36,11 @@ class DummyJudge:
             _melds = get_all_melds(temp_hand)
             for meld in _melds:
                 hand_card = [card for card in meld if card in current_hand]
-                index = np.min(np.where(np.isin(discard_pile, meld)))
-
-                take_card = [c for c in discard_pile[index:] if c not in meld]
+                arr_index = np.array(np.where(np.isin(discard_pile, meld))).tolist()[0]
+                take_card = []
+                if len(arr_index) > 0:
+                    index = np.min(arr_index)
+                    take_card =  [c for c in discard_pile[index:] if c not in meld]
 
                 if len(hand_card) > 0 and len(hand_card) < len(meld) and len(hand_card) < len(current_hand) + len(take_card):
                     #add action
