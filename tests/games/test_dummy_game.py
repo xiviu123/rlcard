@@ -27,7 +27,7 @@ class TestDummyGame(unittest.TestCase):
         self.assertEqual(len(game.round.dealer.discard_pile), 1)
         self.assertEqual(state['player_id'], current_player)
 
-    def test_deposit(self):
+    def _1test_deposit(self):
         game = Game()
         state, current_player_id = game.init_game()
         game.round.dealer.speto_cards = [10, 13, 20]
@@ -37,6 +37,20 @@ class TestDummyGame(unittest.TestCase):
         game.round.dealer.discard_pile = [20, 29, 25, 41, 37, 48, 22, 19, 0, 27, 23]
 
         game.step(121)
+
+    def test_meld(self):
+        game = Game()
+        state, current_player_id = game.init_game()
+        game.round.dealer.speto_cards = [10, 13, 31]
+        current_player = game.round.players[current_player_id]
+        opponent = game.round.players[(current_player_id + 1) % 2]
+        current_player.hand =[49, 34, 21, 19, 39, 42, 32, 45]
+        current_player.melds = [[15, 28, 41]]
+        opponent.melds = [[5, 18, 31], [8, 9, 10, 7], [0, 1, 2]]
+
+
+        game.step(665)
+
 
     def _1test_proceed_game(self):
         game = Game()

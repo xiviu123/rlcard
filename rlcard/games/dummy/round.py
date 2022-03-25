@@ -97,7 +97,7 @@ class DummyRound:
         speto_cards = [c for c in self.dealer.speto_cards if c not in [card for player in self.players for meld in player.melds for card in meld] and c not in current_player.hand]
         for c in speto_cards:
             can_deposit = False
-            meld_sort = sorted(cards, key=lambda x: (get_suit_id(x), get_rank_id(x)))
+            meld_sort = sorted(cards + [c], key=lambda x: (get_suit_id(x), get_rank_id(x)))
             if is_meld(meld_sort):
                 if is_run_meld(meld_sort):
                     if meld_sort[0] == c or meld_sort[-1] == c:

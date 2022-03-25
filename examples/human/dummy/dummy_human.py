@@ -208,15 +208,15 @@ import os
 ROOT_PATH = os.path.join(rlcard.__path__[0], 'models/pretrained')
 
 env = rlcard.make('dummy')
-# device = torch.device('cpu')
+device = torch.device('cpu')
 
-# model_path = os.path.join(ROOT_PATH, 'dummy_dmc', '{}.pth'.format(0))
-# agent = torch.load(model_path, map_location=device)
-# agent.set_device(device)
+model_path = os.path.join(ROOT_PATH, 'dummy_dmc', '{}.pth'.format(0))
+agent = torch.load(model_path, map_location=device)
+agent.set_device(device)
 
 human_agent = HumanAgent(env.num_actions)
 
-env.set_agents([human_agent, human_agent])
+env.set_agents([human_agent, agent])
 
 
 # board = GameBoard()
