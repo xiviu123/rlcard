@@ -4,7 +4,7 @@ from rlcard.games.dummy.game import DummyGame as Game
 
 import numpy as np
 
-from rlcard.games.dummy.melding import get_card
+from rlcard.games.dummy.melding import *
 
 
 class TestDummyGame(unittest.TestCase):
@@ -60,7 +60,7 @@ class TestDummyGame(unittest.TestCase):
             action = np.random.choice(legal_actions)
             _, _ = game.step(action)
 
-    def test_legal_action(self):
+    def _1test_legal_action(self):
         game = Game()
         state, current_player_id = game.init_game()
         current_player = game.round.players[current_player_id]
@@ -74,6 +74,9 @@ class TestDummyGame(unittest.TestCase):
 
         print(legal_actions)
 
+    def test_two_cards_group(self):
+        # cards = [0,13, 26, 1, 15]
+        print(calculate_pair_good_cards([1,2],[4, 3]))
 
 
    

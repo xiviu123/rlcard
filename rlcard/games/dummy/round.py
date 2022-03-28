@@ -204,6 +204,7 @@ class DummyRound:
             current_player.remove_card_from_hand(card_id)
             if card_id in self.depositable_cards or card_id in self.dealer.speto_cards:
                 current_player.add_transation(50)
+            current_player.add_transation(50)
             
         self.is_over = True
 

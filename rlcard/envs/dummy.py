@@ -14,7 +14,7 @@ class DummyEnv(Env):
 
         super().__init__(config=config)
 
-        self.state_shape = [[555] for _ in range(self.num_players)]
+        self.state_shape = [[577] for _ in range(self.num_players)]
         self.action_shape = [None for _ in range(self.num_players)]
 
     def _extract_state(self, state):
@@ -39,7 +39,7 @@ class DummyEnv(Env):
                         depositable_cards : card có thể gửi (52)
         '''
         if self.game.is_over():
-            obs =  np.zeros(555, dtype=int)
+            obs =  np.zeros(577, dtype=int)
             extracted_state = {'obs': obs, 'legal_actions': self._get_legal_actions()}
             extracted_state['raw_legal_actions'] = list(self._get_legal_actions().keys())
             extracted_state['raw_obs'] = state
@@ -58,9 +58,9 @@ class DummyEnv(Env):
             discard_pile =  state['discard_pile']
 
             num_stoke_pile_rep = get_one_hot_array(num_stoke_pile,29)
-            opponent_card_left_rep = get_one_hot_array(opponent_card_left, 29)
+            opponent_card_left_rep = get_one_hot_array(opponent_card_left, 40)
             current_hand_rep = encode_cards(current_hand)
-            current_card_left_rep = get_one_hot_array(current_card_left, 29)
+            current_card_left_rep = get_one_hot_array(current_card_left, 40)
             known_cards_rep = encode_cards(known_cards)
             unknown_cards_rep = encode_cards(unknown_cards)
             speto_card_rep = get_one_hot_array(speto_card,52)
