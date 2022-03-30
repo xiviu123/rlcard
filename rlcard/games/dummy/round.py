@@ -144,6 +144,9 @@ class DummyRound:
 
         self._caculate_depositable_cards()
 
+        if current_player.knock_one_turn is None:
+            current_player.knock_one_turn = True
+
          # Giả thiết, nếu hạ meld mà có thể gửi speto trừ điểm
         speto_cards = [c for c in self.dealer.speto_cards if c not in [card for player in self.players for meld in player.melds for card in meld] and c not in current_player.hand]
         for c in speto_cards:
@@ -181,6 +184,9 @@ class DummyRound:
         #Đổi lượt chơi
         self.current_player_id = (self.current_player_id + 1) % self.num_players
 
+        if current_player.knock_one_turn:
+            current_player.knock_one_turn = False
+
         #Đánh bài lỗi trừ điểm
         if card_id in self.depositable_cards:
             #TODO trừ 50 điểm
@@ -205,6 +211,9 @@ class DummyRound:
             if card_id in self.depositable_cards or card_id in self.dealer.speto_cards:
                 current_player.add_transation(50)
             current_player.add_transation(50)
+
+            if current_player.knock_one_turn:
+                current_player.add_transation(50)
             
         self.is_over = True
 
