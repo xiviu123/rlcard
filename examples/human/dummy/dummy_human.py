@@ -228,6 +228,6 @@ while (True):
     print(">> Start a new game")
     trajectories, payoffs = env.run(is_training=False)
 
-    print( payoffs)
+    # print(trajectories, payoffs)
 
     input("Press any key to continue...")
