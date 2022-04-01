@@ -103,7 +103,7 @@ class DummyJudge:
             payoffs[i] = payoff
 
 
-        return payoffs if payoffs == [0, 0] else np.divide(payoffs, np.abs(payoffs).max()) 
+        return np.array(payoffs) if payoffs == [0, 0] else np.divide(payoffs, np.abs(payoffs).max()) 
 
     def get_payoff(self, player: DummyPlayer):
         deadwood_score =  -sum([_get_deadwood_value(card, self.game.round.dealer.speto_cards) for card in player.hand])
