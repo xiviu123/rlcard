@@ -112,4 +112,4 @@ class DummyEnv(Env):
             if self.game.is_over():
                 is_game_complete = True
         payoffs = [0, 0] if not is_game_complete else self.game.judge.get_payoffs()
-        return payoffs
+        return np.array(payoffs)
