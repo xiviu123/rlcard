@@ -263,7 +263,7 @@ class NFSPAgent(object):
         info_states = [t.info_state for t in transitions]
         action_probs = [t.action_probs for t in transitions]
 
-        self.policy_network_optimizer.zero_grad(set_to_none=True)
+        self.policy_network_optimizer.zero_grad()
         self.policy_network.train()
 
         # (batch, state_size)
