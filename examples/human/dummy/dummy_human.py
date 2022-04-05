@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from math import e
 from rlcard.games.dummy.action_event import get_action, get_action_str
 from rlcard.games.dummy.melding import RANK_STR, SUIT_STR
@@ -9,7 +10,7 @@ class HumanAgent(object):
     ''' A human agent for Blackjack. It can be used to play alone for understand how the blackjack code runs
     '''
 
-    def __init__(self, num_actions):
+    def __init__(self, num_actions, position):
         ''' Initilize the human agent
 
         Args:
@@ -17,9 +18,10 @@ class HumanAgent(object):
         '''
         self.use_raw = True
         self.num_actions = num_actions
+        self.position = position
 
     @staticmethod
-    def step(state):
+    def step(state, position):
         ''' Human agent will display the state and make decisions through interfaces
 
         Args:
@@ -32,6 +34,13 @@ class HumanAgent(object):
         _print_state(state['raw_obs'])
         print("[" +  ", ".join([ "{}-{}".format(lid, get_action_str(lid) )  for lid in state['legal_actions']]) + "]")
 
+
+        model_path = os.path.join(ROOT_PATH, 'dummy_dmc', '{}.pth'.format(position))
+        agent = torch.load(model_path, map_location=device)
+        agent.set_device(device)
+        action_id, info = agent.eval_step(state)
+        print(action_id, info)
+        '''
         action_id = input('>> You choose action (integer): ')
         
         while( not action_id.isdigit()):
@@ -41,6 +50,8 @@ class HumanAgent(object):
         while action_id not in state['legal_actions']:
             print('Action illegel...')
             action_id = int(input('>> Re-choose action (integer): '))
+
+        '''
 
         return action_id
 
@@ -54,7 +65,63 @@ class HumanAgent(object):
         Returns:
             action (int): the action predicted (randomly chosen) by the random agent
         '''
-        return self.step(state), {}
+        return self.step(state, self.position), {}
+
+
+def _extract_state(self, state):
+        num_stoke_pile  = state['num_stoke_pile']
+        opponent_card_left = state['opponent_card_left']
+        current_hand = state['current_hand']
+        current_card_left = state['current_card_left']
+        current_score_cards = state['current_score_cards']
+        opponent_score_cards = state['opponent_score_cards']
+        known_cards = state['known_cards']
+        unknown_cards = state['unknown_cards']
+        speto_card = state['speto_card']
+        just_discard = state['just_discard']
+        depositable_cards = state['depositable_cards']
+        discard_pile =  state['discard_pile']
+
+        num_stoke_pile_rep = get_one_hot_array(num_stoke_pile,29)
+        opponent_card_left_rep = get_one_hot_array(opponent_card_left, 40)
+        current_hand_rep = encode_cards(current_hand)
+        current_card_left_rep = get_one_hot_array(current_card_left, 40)
+        known_cards_rep = encode_cards(known_cards)
+        unknown_cards_rep = encode_cards(unknown_cards)
+        speto_card_rep = get_one_hot_array(speto_card,52)
+        just_discard_rep = encode_cards(just_discard)
+        depositable_cards_rep = encode_cards(depositable_cards)
+        discard_pile_rep = encode_cards(discard_pile)
+        current_score_cards_rep = encode_cards(current_score_cards)
+        opponent_score_cards_rep = encode_cards(opponent_score_cards)
+
+        obs = np.concatenate((
+            num_stoke_pile_rep,
+            opponent_card_left_rep,
+            current_hand_rep,
+            current_card_left_rep,
+            known_cards_rep,
+            unknown_cards_rep,
+            speto_card_rep,
+            just_discard_rep,
+            depositable_cards_rep,
+            discard_pile_rep,
+            current_score_cards_rep,
+            opponent_score_cards_rep
+        ))
+
+
+        legal_actions =  {action_id: None for action_id in state['actions']}
+
+        extracted_state = OrderedDict({'obs': obs, 'legal_actions': legal_actions})
+        extracted_state['raw_obs'] = state
+        extracted_state['raw_legal_actions'] = list(legal_actions.keys())
+
+        # extracted_state = OrderedDict({'obs': obs, 'legal_actions': legal_actions})
+        # extracted_state['raw_obs'] = state
+        # extracted_state['raw_legal_actions'] = [a for a in state['actions']]
+        return extracted_state
+
 
 def _print_state(state):
 
@@ -105,7 +172,7 @@ def _print_state(state):
     print("==================================== PLAYER 1 HAND ====================================")
     draw_player(player_1_hand, player_1_melds, 1)
 
-from rlcard.games.dummy.utils import get_card
+from rlcard.games.dummy.utils import encode_cards, get_card, get_one_hot_array
 from termcolor import colored
 
 def elegent_form(card):
@@ -211,13 +278,14 @@ ROOT_PATH = os.path.join(rlcard.__path__[0], 'models/pretrained')
 env = rlcard.make('dummy')
 device = torch.device('cpu')
 
-model_path = os.path.join(ROOT_PATH, 'dummy_dmc', '{}.pth'.format(0))
-agent = torch.load(model_path, map_location=device)
-agent.set_device(device)
+# model_path = os.path.join(ROOT_PATH, 'dummy_dmc', '{}.pth'.format(1))
+# agent = torch.load(model_path, map_location=device)
+# agent.set_device(device)
 
-human_agent = HumanAgent(env.num_actions)
+human_agent_0 = HumanAgent(env.num_actions, 0)
+human_agent_1 = HumanAgent(env.num_actions, 1)
 
-env.set_agents([human_agent, agent])
+env.set_agents([human_agent_0, human_agent_1])
 
 
 # board = GameBoard()
@@ -228,6 +296,6 @@ while (True):
     print(">> Start a new game")
     trajectories, payoffs = env.run(is_training=False)
 
-    print(trajectories, payoffs)
+    print(payoffs)
 
     input("Press any key to continue...")
