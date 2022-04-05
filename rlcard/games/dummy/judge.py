@@ -108,7 +108,6 @@ class DummyJudge:
         deadwood_score =  -sum([_get_deadwood_value(card, self.game.round.dealer.speto_cards) for card in player.hand])
         card_score = sum([_get_deadwood_value(card, self.game.round.dealer.speto_cards) for card in player.score_cards])
         tran_score = sum(player.transactions)
-        print(deadwood_score, card_score, tran_score)
         return (deadwood_score + card_score + tran_score) / 500
 
 rank_to_deadwood_value = {"A": 15, "2": 5, "3": 5, "4": 5, "5": 5, "6": 5, "7": 5, "8": 5, "9": 5,
