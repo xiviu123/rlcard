@@ -108,13 +108,14 @@ class DummyJudge:
         deadwood_score =  -sum([_get_deadwood_value(card, self.game.round.dealer.speto_cards) for card in player.hand])
         card_score = sum([_get_deadwood_value(card, self.game.round.dealer.speto_cards) for card in player.score_cards])
         tran_score = sum(player.transactions)
+        print(deadwood_score, card_score, tran_score)
         return (deadwood_score + card_score + tran_score) / 500
 
 rank_to_deadwood_value = {"A": 15, "2": 5, "3": 5, "4": 5, "5": 5, "6": 5, "7": 5, "8": 5, "9": 5,
                           "T": 10, "J": 10, "Q": 10, "K": 10}
 def _get_deadwood_value(card, speto_cards):
     (rank_id, _) = get_card(card)
-    deadwood_value = rank_to_deadwood_value.get(rank_id, 10)  # default to 10 is key does not exist
+    deadwood_value = rank_to_deadwood_value.get(RANK_STR[rank_id], 10)  # default to 10 is key does not exist
     if card in speto_cards:
         deadwood_value  = deadwood_value + 50
     return deadwood_value
