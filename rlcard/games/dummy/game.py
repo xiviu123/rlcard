@@ -34,28 +34,55 @@ class DummyGame:
 
     def get_state(self, player_id: int):
         player = self.round.players[player_id]
-        opponent = self.round.players[(player_id + 1) %2]
+        up_opponent_id =  (player_id + 1) % self.num_players
+        up_opponent = self.round.players[up_opponent_id]
+
+        down_opponent  = None
+        if self.num_players > 2:
+            down_opponent_id  = player_id - 1 if  player_id >= 1 else self.num_players - player_id
+            down_opponent = self.round.players[down_opponent_id]
+
+        far_opponent = None
+        if self.num_players == 4:
+            far_opponent_id = player_id + 2 if player_id < self.num_players - 2 else (player_id + 2) % self.num_players
+            far_opponent = self.round.players[far_opponent_id]
         
         state = {}
         state['num_stoke_pile'] = len(self.round.dealer.stock_pile)
-        state['opponent_card_left'] = len(opponent.hand)
+
+        state['up_opponent_card_left'] = len(up_opponent.hand)
+        state['up_opponent_meld'] = up_opponent.melds
+        state['up_opponent_hand'] = up_opponent.known_cards
+
+        if down_opponent is not None:
+            state['down_opponent_card_left'] = len(down_opponent.hand)
+            state['down_opponent_meld'] = down_opponent.melds
+            state['down_opponent_hand'] = down_opponent.known_cards
+
+        if  far_opponent is not None:
+            state['far_opponent_card_left'] = len(far_opponent.hand)
+            state['far_opponent_meld'] = far_opponent.melds
+            state['far_opponent_hand'] = far_opponent.known_cards
+
+        # state['min_opponent_card_lef'] = [len(player.hand) for player in self.round.players]
+
         state['current_hand'] = player.hand
-        state['current_card_left'] = len(player.hand)
-        state['known_cards'] = [c for p in self.round.players for c in p.known_cards]
-        state['unknown_cards'] = self.round.dealer.stock_pile + [c for c in opponent.hand if c not in opponent.known_cards]
-        state['speto_card'] = self.round.dealer.first_card
-        state['just_discard'] = self.round.just_discard
-        state['depositable_cards'] = self.round.depositable_cards
+        state['current_meld'] = player.melds 
+
         state['discard_pile'] = self.round.dealer.discard_pile
-        state['current_meld'] = player.melds #pretrained
-        state['opponent_meld'] = opponent.melds #pretrained
-        state['current_score_cards'] = player.score_cards #pretrained
-        state['opponent_score_cards'] = opponent.score_cards #pretrained
-        state['current_trans'] = player.transactions #pretrained
-        state['opponent_trans'] = opponent.transactions #pretrained
+        state['known_cards'] = [c for p in self.round.players for c in p.known_cards]
+        state['speto_card'] = self.round.dealer.speto_cards
+        # state['just_discard'] = self.round.just_discard
 
-        state['opponent_hand'] = opponent.hand #pretrained
-
+        
+        
+        # state['unknown_cards'] = self.round.dealer.stock_pile + [c for c in opponent.hand if c not in opponent.known_cards]
+        
+        
+        
+        
+        # state['depositable_cards'] = self.round.depositable_cards #pretrained
+        state['trans'] = [player.transactions for player in self.round.players] #pretrained
         state['player_id'] = player_id #pretrained
         return state
 

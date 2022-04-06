@@ -163,3 +163,42 @@ def find_card_can_deposit(meld: List[int]):
 
     return can_deposit
 
+def find_potential_cards(cards: List[int], discard_id: int, dead_cards):
+    sorted_cards = sorted(cards + [discard_id], key=lambda x: (get_suit_id(x), get_rank_id(x)))
+    arr = []
+    for i in range(len(sorted_cards) - 1):
+        for j in range(i+1, len(sorted_cards)):
+            (rank_i, suit_i) = get_card(sorted_cards[i])
+            (rank_j, suit_j) = get_card(sorted_cards[j])
+            
+            #set 
+            if rank_i == rank_j:
+                vals  = [get_cardid_from_card((rank_i, s)) for s in range(len(SUIT_STR)) if s != suit_i and s != suit_j]
+                vals = [v for v in vals if v not in sorted_cards and v not in dead_cards]
+                if len(vals) > 0:
+                    vals += [sorted_cards[i], sorted_cards[j]]
+                if discard_id in vals:
+                    arr.append(vals)
+
+            if suit_i == suit_j:
+                if rank_i + 1 == rank_j:
+                    rs = []
+                    if rank_j + 1 < len(RANK_STR):
+                        rs.append(rank_j + 1)
+                    if rank_i - 1 >= 0:
+                        rs.append(rank_i - 1)
+                    vals = [get_cardid_from_card((r, suit_i)) for r in rs]
+                    vals = [v for v in vals if v not in sorted_cards and v not in dead_cards]
+                    if len(vals) > 0:
+                        vals  += [sorted_cards[i], sorted_cards[j]]
+                    if discard_id in vals:
+                        arr.append(vals)
+
+                elif rank_i + 2 == rank_j:
+                    c  = get_cardid_from_card((rank_i + 1, suit_i))
+                    if c not in sorted_cards and c not in dead_cards:
+                        vals =  [sorted_cards[i], sorted_cards[j], c]
+                        if discard_id in vals:
+                            arr.append(vals)
+    return arr
+

@@ -107,6 +107,8 @@ class DummyJudge:
     def get_payoff(self, player: DummyPlayer):
         deadwood_score =  -sum([_get_deadwood_value(card, self.game.round.dealer.speto_cards) for card in player.hand])
         card_score = sum([_get_deadwood_value(card, self.game.round.dealer.speto_cards) for card in player.score_cards])
+        if card_score == 0:
+            deadwood_score *= 2
         tran_score = sum(player.transactions)
         return (deadwood_score + card_score + tran_score) / 500
 

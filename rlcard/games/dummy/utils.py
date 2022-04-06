@@ -2,7 +2,7 @@ from typing import List
 import numpy as np
 import os
 import rlcard
-from .melding import get_card, get_card_str
+from .melding import get_card, get_card_str, get_rank_id, get_suit_id
 
 ROOT_PATH = rlcard.__path__[0]
 
@@ -23,6 +23,17 @@ def encode_cards(cards) -> np.ndarray:
     plane = np.zeros(52, dtype=int)
     for card_id in cards:
         plane[card_id] = 1
+    return plane
+
+def encode_melds(melds: List[int]):
+
+    plane = np.zeros(329, dtype=int)
+    for meld in melds:
+        meld = sorted(meld)
+        meld_id = ID_2_ACTION.index(",".join([str(c) for c in meld]))
+
+        plane[meld_id] = 1
+
     return plane
 
 def meld_2_str(meld : List[int]):

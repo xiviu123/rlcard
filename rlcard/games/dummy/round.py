@@ -2,7 +2,7 @@ from typing import List
 from rlcard.games.dummy.utils import ID_2_ACTION
 from .dealer import DummyDealer as Dealer
 from .player import DummyPlayer as Player
-from .melding import get_all_melds, is_meld, get_suit_id, get_rank_id, is_run_meld, is_set_meld, caculate_depositable_cards
+from .melding import find_potential_cards, get_all_melds, is_meld, get_suit_id, get_rank_id, is_run_meld, is_set_meld, caculate_depositable_cards
 import numpy as np
 
 class DummyRound:
@@ -174,6 +174,7 @@ class DummyRound:
             current_player.known_cards.remove(card_id)
 
         #add vào bài dưới bàn
+        discard_pile_copy = self.dealer.discard_pile.copy()
         self.dealer.discard_pile.append(card_id)
 
 
@@ -199,6 +200,13 @@ class DummyRound:
                 current_player.add_transation(-50)
                 # print("trừ điểm 5")
                 break
+
+        all_score_card = [c for p in self.players for c in p.score_cards]
+        for l in find_potential_cards(discard_pile_copy, card_id, all_score_card):
+            cm = [c for c in l if c in self.dealer.speto_cards]
+            if len(cm) > 0:
+                current_player.add_transation(-30 * len(cm))
+
 
 
     def knock(self, card_id):
