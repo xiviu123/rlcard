@@ -13,8 +13,11 @@ class DummyEnv(Env):
         self.game = Game()
 
         super().__init__(config=config)
+        if self.num_players == 2:
+            self.state_shape = [[987] for _ in range(self.num_players)]
+        elif self.num_players == 3:
+            self.state_shape = [[1408] for _ in range(self.num_players)]
 
-        self.state_shape = [[987] for _ in range(self.num_players)]
         self.action_shape = [None for _ in range(self.num_players)]
 
     def _extract_state(self, state):
@@ -39,7 +42,10 @@ class DummyEnv(Env):
                         depositable_cards : card có thể gửi (52)
         '''
         if self.game.is_over():
-            obs =  np.zeros(987, dtype=int)
+            if self.num_players == 2:
+                obs =  np.zeros(987, dtype=int)
+            elif self.num_players == 3:
+                obs =  np.zeros(1408, dtype=int)
             extracted_state = {'obs': obs, 'legal_actions': self._get_legal_actions()}
             extracted_state['raw_legal_actions'] = list(self._get_legal_actions().keys())
             extracted_state['raw_obs'] = state
@@ -49,6 +55,11 @@ class DummyEnv(Env):
             up_opponent_card_left = state['up_opponent_card_left']
             up_opponent_meld = state['up_opponent_meld']
             up_opponent_hand = state['up_opponent_hand']
+
+            if self.num_players > 2:
+                down_opponent_card_left = state['down_opponent_card_left']
+                down_opponent_meld = state['down_opponent_meld']
+                down_opponent_hand = state['down_opponent_hand']
 
             current_hand = state['current_hand']
             current_meld = state['current_meld']
@@ -64,6 +75,10 @@ class DummyEnv(Env):
             up_opponent_meld_rep = encode_melds( up_opponent_meld)
             up_opponent_hand_rep = encode_cards(up_opponent_hand)
 
+            down_opponent_card_left_rep = get_one_hot_array(down_opponent_card_left, 40)
+            down_opponent_meld_rep = encode_melds( down_opponent_meld)
+            down_opponent_hand_rep = encode_cards(down_opponent_hand)
+
             current_hand_rep = encode_cards(current_hand)
             current_meld_rep = encode_melds(current_meld)
 
@@ -72,18 +87,33 @@ class DummyEnv(Env):
             speto_card_rep = encode_cards(speto_card)
 
 
-            obs = np.concatenate((
-                num_stoke_pile_rep,
-                up_opponent_card_left_rep,
-                up_opponent_meld_rep,
-                up_opponent_hand_rep,
-                current_hand_rep,
-                current_meld_rep,
-                discard_pile_rep,
-                known_cards_rep,
-                speto_card_rep
-            ))
-
+            if self.num_players == 2:
+                obs = np.concatenate((
+                    num_stoke_pile_rep,
+                    up_opponent_card_left_rep,
+                    up_opponent_meld_rep,
+                    up_opponent_hand_rep,
+                    current_hand_rep,
+                    current_meld_rep,
+                    discard_pile_rep,
+                    known_cards_rep,
+                    speto_card_rep
+                ))
+            elif self.num_players > 2:
+                obs = np.concatenate((
+                    num_stoke_pile_rep,
+                    up_opponent_card_left_rep,
+                    up_opponent_meld_rep,
+                    up_opponent_hand_rep,
+                    down_opponent_card_left_rep,
+                    down_opponent_meld_rep,
+                    down_opponent_hand_rep,
+                    current_hand_rep,
+                    current_meld_rep,
+                    discard_pile_rep,
+                    known_cards_rep,
+                    speto_card_rep
+                ))
 
             extracted_state = OrderedDict({'obs': obs, 'legal_actions': self._get_legal_actions()})
             extracted_state['raw_obs'] = state
@@ -110,5 +140,5 @@ class DummyEnv(Env):
         if self.game.round:
             if self.game.is_over():
                 is_game_complete = True
-        payoffs = [0, 0] if not is_game_complete else self.game.judge.get_payoffs()
+        payoffs = [0 for _ in range(self.num_players)] if not is_game_complete else self.game.judge.get_payoffs()
         return np.array(payoffs)

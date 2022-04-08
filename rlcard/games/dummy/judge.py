@@ -96,7 +96,7 @@ class DummyJudge:
         return legal_actions
 
     def get_payoffs(self):
-        payoffs = [0, 0]
+        payoffs = [0 for _ in range(self.game.get_num_players())]
         for i in range(self.game.get_num_players()):
             player = self.game.round.players[i]
             payoff = self.get_payoff(player)

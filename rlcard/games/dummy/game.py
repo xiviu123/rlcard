@@ -9,7 +9,7 @@ class DummyGame:
     actions: List[int]
     def __init__(self) -> None:
         self.np_random = np.random.RandomState()
-        self.num_players = 2
+        self.num_players = 3
 
         self.judge = Judge(game=self)
 
@@ -39,7 +39,7 @@ class DummyGame:
 
         down_opponent  = None
         if self.num_players > 2:
-            down_opponent_id  = player_id - 1 if  player_id >= 1 else self.num_players - player_id
+            down_opponent_id  = player_id - 1 if  player_id >= 1 else self.num_players  - 1
             down_opponent = self.round.players[down_opponent_id]
 
         far_opponent = None
