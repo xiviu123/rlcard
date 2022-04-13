@@ -75,9 +75,10 @@ class DummyEnv(Env):
             up_opponent_meld_rep = encode_melds( up_opponent_meld)
             up_opponent_hand_rep = encode_cards(up_opponent_hand)
 
-            down_opponent_card_left_rep = get_one_hot_array(down_opponent_card_left, 40)
-            down_opponent_meld_rep = encode_melds( down_opponent_meld)
-            down_opponent_hand_rep = encode_cards(down_opponent_hand)
+            if self.num_players > 2:
+                down_opponent_card_left_rep = get_one_hot_array(down_opponent_card_left, 40)
+                down_opponent_meld_rep = encode_melds( down_opponent_meld)
+                down_opponent_hand_rep = encode_cards(down_opponent_hand)
 
             current_hand_rep = encode_cards(current_hand)
             current_meld_rep = encode_melds(current_meld)

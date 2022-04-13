@@ -10,7 +10,7 @@ class HumanAgent(object):
     ''' A human agent for Blackjack. It can be used to play alone for understand how the blackjack code runs
     '''
 
-    def __init__(self, num_actions, position):
+    def __init__(self, num_actions, position, num_players):
         ''' Initilize the human agent
 
         Args:
@@ -19,9 +19,10 @@ class HumanAgent(object):
         self.use_raw = True
         self.num_actions = num_actions
         self.position = position
+        self.num_players = num_players
 
     @staticmethod
-    def step(state, position):
+    def step(state, position, num_players):
         ''' Human agent will display the state and make decisions through interfaces
 
         Args:
@@ -35,7 +36,7 @@ class HumanAgent(object):
         print("[" +  ", ".join([ "{}-{}".format(lid, get_action_str(lid) )  for lid in state['legal_actions']]) + "]")
 
 
-        model_path = os.path.join(ROOT_PATH, 'dummy_dmc', '{}.pth'.format(position))
+        model_path = os.path.join(ROOT_PATH, 'dummy_dmc', '{}_{}.pth'.format(num_players, position))
         agent = torch.load(model_path, map_location=device)
         agent.set_device(device)
         action_id, info = agent.eval_step(state)
@@ -65,7 +66,7 @@ class HumanAgent(object):
         Returns:
             action (int): the action predicted (randomly chosen) by the random agent
         '''
-        return self.step(state, self.position), {}
+        return self.step(state, self.position, self.num_players), {}
 
 
 def _print_state(state):
@@ -227,8 +228,9 @@ device = torch.device('cpu')
 # agent = torch.load(model_path, map_location=device)
 # agent.set_device(device)
 
-human_agent_0 = HumanAgent(env.num_actions, 0)
-human_agent_1 = HumanAgent(env.num_actions, 1)
+num_players = 2
+human_agent_0 = HumanAgent(env.num_actions, 0, num_players)
+human_agent_1 = HumanAgent(env.num_actions, 1, num_players)
 
 env.set_agents([human_agent_0, human_agent_1])
 
