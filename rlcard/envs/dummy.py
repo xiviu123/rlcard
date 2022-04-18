@@ -17,6 +17,8 @@ class DummyEnv(Env):
             self.state_shape = [[987] for _ in range(self.num_players)]
         elif self.num_players == 3:
             self.state_shape = [[1408] for _ in range(self.num_players)]
+        elif self.num_players == 4:
+            self.state_shape = [[1829] for _ in range(self.num_players)]
 
         self.action_shape = [None for _ in range(self.num_players)]
 
@@ -46,6 +48,8 @@ class DummyEnv(Env):
                 obs =  np.zeros(987, dtype=int)
             elif self.num_players == 3:
                 obs =  np.zeros(1408, dtype=int)
+            elif self.num_players == 4:
+                obs =  np.zeros(1829, dtype=int)
             extracted_state = {'obs': obs, 'legal_actions': self._get_legal_actions()}
             extracted_state['raw_legal_actions'] = list(self._get_legal_actions().keys())
             extracted_state['raw_obs'] = state
@@ -60,6 +64,11 @@ class DummyEnv(Env):
                 down_opponent_card_left = state['down_opponent_card_left']
                 down_opponent_meld = state['down_opponent_meld']
                 down_opponent_hand = state['down_opponent_hand']
+
+            if self.num_players == 4:
+                far_opponent_card_left = state['far_opponent_card_left']
+                far_opponent_meld = state['far_opponent_meld']
+                far_opponent_hand = state['far_opponent_hand']
 
             current_hand = state['current_hand']
             current_meld = state['current_meld']
@@ -79,6 +88,11 @@ class DummyEnv(Env):
                 down_opponent_card_left_rep = get_one_hot_array(down_opponent_card_left, 40)
                 down_opponent_meld_rep = encode_melds( down_opponent_meld)
                 down_opponent_hand_rep = encode_cards(down_opponent_hand)
+            
+            if self.num_players == 4:
+                far_opponent_card_left_rep = get_one_hot_array(far_opponent_card_left, 40)
+                far_opponent_meld_rep = encode_melds( far_opponent_meld)
+                far_opponent_hand_rep = encode_cards(far_opponent_hand)
 
             current_hand_rep = encode_cards(current_hand)
             current_meld_rep = encode_melds(current_meld)
@@ -100,7 +114,7 @@ class DummyEnv(Env):
                     known_cards_rep,
                     speto_card_rep
                 ))
-            elif self.num_players > 2:
+            elif self.num_players == 3:
                 obs = np.concatenate((
                     num_stoke_pile_rep,
                     up_opponent_card_left_rep,
@@ -109,6 +123,24 @@ class DummyEnv(Env):
                     down_opponent_card_left_rep,
                     down_opponent_meld_rep,
                     down_opponent_hand_rep,
+                    current_hand_rep,
+                    current_meld_rep,
+                    discard_pile_rep,
+                    known_cards_rep,
+                    speto_card_rep
+                ))
+            elif self.num_players == 4:
+                obs = np.concatenate((
+                    num_stoke_pile_rep,
+                    up_opponent_card_left_rep,
+                    up_opponent_meld_rep,
+                    up_opponent_hand_rep,
+                    down_opponent_card_left_rep,
+                    down_opponent_meld_rep,
+                    down_opponent_hand_rep,
+                    far_opponent_card_left_rep,
+                    far_opponent_meld_rep,
+                    far_opponent_hand_rep,
                     current_hand_rep,
                     current_meld_rep,
                     discard_pile_rep,

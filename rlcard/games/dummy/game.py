@@ -9,7 +9,7 @@ class DummyGame:
     actions: List[int]
     def __init__(self) -> None:
         self.np_random = np.random.RandomState()
-        self.num_players = 2
+        self.num_players = 4
 
         self.judge = Judge(game=self)
 
