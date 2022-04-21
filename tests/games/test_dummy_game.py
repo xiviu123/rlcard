@@ -4,7 +4,7 @@ import unittest
 
 import torch
 import rlcard
-from rlcard.games.dummy.action_event import get_action_str
+from rlcard.games.dummy.action_event import get_action, get_action_str
 from rlcard.games.dummy.game import DummyGame as Game
 
 from heapq import nlargest
@@ -12,7 +12,7 @@ from heapq import nlargest
 import numpy as np
 
 from rlcard.games.dummy.melding import *
-from rlcard.games.dummy.utils import ID_2_ACTION, encode_cards, get_one_hot_array
+from rlcard.games.dummy.utils import ID_2_ACTION, encode_cards, encode_melds, get_one_hot_array
 
 class TestDummyGame(unittest.TestCase):
     def test_get_num_players(self):
@@ -48,17 +48,19 @@ class TestDummyGame(unittest.TestCase):
     def test_model(self):
         game = Game()
         state, current_player_id = game.init_game()
-        game.round.dealer.speto_cards = [10, 13, 6]
-        game.round.dealer.discard_pile = [49]
+        game.round.dealer.stock_pile = game.round.dealer.stock_pile[:22]
+        game.round.dealer.speto_cards = [10, 13, 17]
+        game.round.dealer.discard_pile = [39]
         current_player = game.round.players[current_player_id]
         opponent = game.round.players[(current_player_id + 1) % 2]
-        opponent.hand = [ 4, 27, 15, 0, 46, 42, 20, 9]
+        opponent.known_cards = [6]
 
-        current_player.hand =[51, 40, 37, 36, 34, 7, 23, 30, 8, 35, 10]
-        current_player.melds = []
-        opponent.melds = [[6, 32, 45]]
+        current_player.hand =[8,36,26,43,38,0,51,30]
+        current_player.melds = [[16,18,17],[35,33,34]]
+        opponent.melds = [[4,3,5]]
 
         state = game.get_state(current_player_id)
+        game.actions.append(0)
         state['actions'] = game.judge.get_legal_actions()
         state = self._extract_state(state)
         
@@ -67,57 +69,64 @@ class TestDummyGame(unittest.TestCase):
 
 
 
-        model_path = os.path.join(ROOT_PATH, 'dummy_dmc', '{}.pth'.format(1))
+        model_path = os.path.join(ROOT_PATH, 'dummy_dmc', 'two_players', '{}.pth'.format(1))
         agent = torch.load(model_path, map_location=device)
         agent.set_device(device)
         action, info = agent.eval_step(state)
        
 
-        actions = nlargest(3, info['values'], key=info['values'].get)
-        print(info)
+        actions = nlargest(30, info['values'], key=info['values'].get)
+        print(actions)
+
+        for a in actions:
+            print(get_action(a))
         # game.step(604)
         # print(game.judge.get_legal_actions())
 
     def _extract_state(self, state):
         num_stoke_pile  = state['num_stoke_pile']
-        opponent_card_left = state['opponent_card_left']
+        up_opponent_card_left = state['up_opponent_card_left']
+        up_opponent_meld = state['up_opponent_meld']
+        up_opponent_hand = state['up_opponent_hand']
         current_hand = state['current_hand']
-        current_card_left = state['current_card_left']
-        current_score_cards = state['current_score_cards']
-        opponent_score_cards = state['opponent_score_cards']
+        current_meld = state['current_meld']
+        discard_pile = state['discard_pile']
         known_cards = state['known_cards']
-        unknown_cards = state['unknown_cards']
         speto_card = state['speto_card']
-        just_discard = state['just_discard']
-        depositable_cards = state['depositable_cards']
-        discard_pile =  state['discard_pile']
+
+        print(num_stoke_pile)
+        print(up_opponent_card_left)
+        print(up_opponent_meld)
+        print(up_opponent_hand)
+        print(current_hand)
+        print(current_meld)
+        print(discard_pile)
+        print(known_cards)
+        print(speto_card)
 
         num_stoke_pile_rep = get_one_hot_array(num_stoke_pile,29)
-        opponent_card_left_rep = get_one_hot_array(opponent_card_left, 40)
+        up_opponent_card_left_rep = get_one_hot_array(up_opponent_card_left, 40)
+        up_opponent_meld_rep = encode_melds( up_opponent_meld)
+        up_opponent_hand_rep = encode_cards(up_opponent_hand)
         current_hand_rep = encode_cards(current_hand)
-        current_card_left_rep = get_one_hot_array(current_card_left, 40)
-        known_cards_rep = encode_cards(known_cards)
-        unknown_cards_rep = encode_cards(unknown_cards)
-        speto_card_rep = get_one_hot_array(speto_card,52)
-        just_discard_rep = encode_cards(just_discard)
-        depositable_cards_rep = encode_cards(depositable_cards)
+        current_meld_rep = encode_melds(current_meld)
         discard_pile_rep = encode_cards(discard_pile)
-        current_score_cards_rep = encode_cards(current_score_cards)
-        opponent_score_cards_rep = encode_cards(opponent_score_cards)
+        known_cards_rep = encode_cards(known_cards)
+        speto_card_rep = encode_cards(speto_card)
+
+
+        
 
         obs = np.concatenate((
             num_stoke_pile_rep,
-            opponent_card_left_rep,
+            up_opponent_card_left_rep,
+            up_opponent_meld_rep,
+            up_opponent_hand_rep,
             current_hand_rep,
-            current_card_left_rep,
-            known_cards_rep,
-            unknown_cards_rep,
-            speto_card_rep,
-            just_discard_rep,
-            depositable_cards_rep,
+            current_meld_rep,
             discard_pile_rep,
-            current_score_cards_rep,
-            opponent_score_cards_rep
+            known_cards_rep,
+            speto_card_rep
         ))
 
 
