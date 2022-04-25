@@ -10,7 +10,7 @@ class HumanAgent(object):
     ''' A human agent for Blackjack. It can be used to play alone for understand how the blackjack code runs
     '''
 
-    def __init__(self, num_actions, position):
+    def __init__(self, num_actions, position, num_players):
         ''' Initilize the human agent
 
         Args:
@@ -19,9 +19,10 @@ class HumanAgent(object):
         self.use_raw = True
         self.num_actions = num_actions
         self.position = position
+        self.num_players = num_players
 
     @staticmethod
-    def step(state, position):
+    def step(state, position, num_players):
         ''' Human agent will display the state and make decisions through interfaces
 
         Args:
@@ -35,7 +36,7 @@ class HumanAgent(object):
         print("[" +  ", ".join([ "{}-{}".format(lid, get_action_str(lid) )  for lid in state['legal_actions']]) + "]")
 
 
-        model_path = os.path.join(ROOT_PATH, 'dummy_dmc', '{}.pth'.format(position))
+        model_path = os.path.join(ROOT_PATH, 'dummy_dmc', '{}_{}.pth'.format(num_players, position))
         agent = torch.load(model_path, map_location=device)
         agent.set_device(device)
         action_id, info = agent.eval_step(state)
@@ -65,62 +66,7 @@ class HumanAgent(object):
         Returns:
             action (int): the action predicted (randomly chosen) by the random agent
         '''
-        return self.step(state, self.position), {}
-
-
-def _extract_state(self, state):
-        num_stoke_pile  = state['num_stoke_pile']
-        opponent_card_left = state['opponent_card_left']
-        current_hand = state['current_hand']
-        current_card_left = state['current_card_left']
-        current_score_cards = state['current_score_cards']
-        opponent_score_cards = state['opponent_score_cards']
-        known_cards = state['known_cards']
-        unknown_cards = state['unknown_cards']
-        speto_card = state['speto_card']
-        just_discard = state['just_discard']
-        depositable_cards = state['depositable_cards']
-        discard_pile =  state['discard_pile']
-
-        num_stoke_pile_rep = get_one_hot_array(num_stoke_pile,29)
-        opponent_card_left_rep = get_one_hot_array(opponent_card_left, 40)
-        current_hand_rep = encode_cards(current_hand)
-        current_card_left_rep = get_one_hot_array(current_card_left, 40)
-        known_cards_rep = encode_cards(known_cards)
-        unknown_cards_rep = encode_cards(unknown_cards)
-        speto_card_rep = get_one_hot_array(speto_card,52)
-        just_discard_rep = encode_cards(just_discard)
-        depositable_cards_rep = encode_cards(depositable_cards)
-        discard_pile_rep = encode_cards(discard_pile)
-        current_score_cards_rep = encode_cards(current_score_cards)
-        opponent_score_cards_rep = encode_cards(opponent_score_cards)
-
-        obs = np.concatenate((
-            num_stoke_pile_rep,
-            opponent_card_left_rep,
-            current_hand_rep,
-            current_card_left_rep,
-            known_cards_rep,
-            unknown_cards_rep,
-            speto_card_rep,
-            just_discard_rep,
-            depositable_cards_rep,
-            discard_pile_rep,
-            current_score_cards_rep,
-            opponent_score_cards_rep
-        ))
-
-
-        legal_actions =  {action_id: None for action_id in state['actions']}
-
-        extracted_state = OrderedDict({'obs': obs, 'legal_actions': legal_actions})
-        extracted_state['raw_obs'] = state
-        extracted_state['raw_legal_actions'] = list(legal_actions.keys())
-
-        # extracted_state = OrderedDict({'obs': obs, 'legal_actions': legal_actions})
-        # extracted_state['raw_obs'] = state
-        # extracted_state['raw_legal_actions'] = [a for a in state['actions']]
-        return extracted_state
+        return self.step(state, self.position, self.num_players), {}
 
 
 def _print_state(state):
@@ -141,19 +87,19 @@ def _print_state(state):
 
     print(state)
     player_id = state['player_id']
-    # opponent_id = (player_id + 1 ) % 2
+    up_opponent_id = (player_id + 1 ) % 2
 
     current_hand = state['current_hand']
 
     known_cards = [c for c in state['known_cards'] if c not in current_hand]
 
-    # opponent_hand = [None for _ in range(state['opponent_card_left'] - len(known_cards))] + known_cards
-    opponent_hand = state['opponent_hand']
+    opponent_hand = [None for _ in range(state['up_opponent_card_left'] - len(known_cards))] + known_cards
+    # opponent_hand = state['opponent_hand']
     discard_pile = state['discard_pile']
     deck = [None] + discard_pile
 
     current_meld = state['current_meld']
-    opponent_meld = state['opponent_meld']
+    opponent_meld = state['up_opponent_meld']
 
     num_stoke_pile= state['num_stoke_pile']
 
@@ -282,8 +228,9 @@ device = torch.device('cpu')
 # agent = torch.load(model_path, map_location=device)
 # agent.set_device(device)
 
-human_agent_0 = HumanAgent(env.num_actions, 0)
-human_agent_1 = HumanAgent(env.num_actions, 1)
+num_players = 2
+human_agent_0 = HumanAgent(env.num_actions, 0, num_players)
+human_agent_1 = HumanAgent(env.num_actions, 1, num_players)
 
 env.set_agents([human_agent_0, human_agent_1])
 

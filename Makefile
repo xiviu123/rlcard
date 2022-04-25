@@ -1,2 +1,2 @@
 sync:
-	rsync -av ./rlcard chauhm@train-bot:/home/chauhm/rlcard/
+	rsync -av --exclude "models/pretrained"  ./rlcard chauhm@train-bot:/home/chauhm/rlcard/

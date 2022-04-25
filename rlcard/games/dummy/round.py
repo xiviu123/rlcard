@@ -1,117 +1,41 @@
-from rlcard.games.dummy.action_event import DepositCardAction, DiscardAction, DrawCardAction, KnockAction, MeldCardAction, TakeCardAction
-from .dealer import DummyDealer
-from .move import DealHandMove, DepositCardMove, DiscardMove, DrawCardMove, KnockMove, MeldCardMove, TakeCardMove
-from .player import DummyPlayer
-from .utils import check_can_deposit_speto, get_card, get_card_id, is_meld, is_run_meld, is_set_meld, rank_2_meld, ID_2_ACTION
+from typing import List
+from rlcard.games.dummy.utils import ID_2_ACTION
+from .dealer import DummyDealer as Dealer
+from .player import DummyPlayer as Player
+from .melding import find_potential_cards, get_all_melds, is_meld, get_suit_id, get_rank_id, is_run_meld, is_set_meld, caculate_depositable_cards
 import numpy as np
-from typing import Callable
-
 
 class DummyRound:
-    def __init__(self, dealer_id: int, num_players: int, np_random, add_action_call) -> None:
+    just_discard: List[int]
+    depositable_cards: List[int]
+
+    def __init__(self, dealer_id: int, num_player: int, np_random) -> None:
+        self.current_player_id = dealer_id
         self.np_random = np_random
-        self.dealer_id = dealer_id
-        self.num_players = num_players
-        self.add_action_call = add_action_call
-        self.dealer = DummyDealer(self.num_players, self.np_random)
-        self.players = [DummyPlayer(player_id=id, np_random=self.np_random) for id in range(num_players) ]
-        self.current_player_id = (dealer_id + 1) % num_players
+
         self.is_over = False
-        self.move_sheet = []  # type: List[DummyMove]
-        # player_dealing = DummyPlayer(player_id=dealer_id, np_random=self.np_random)
-        # shuffled_deck = self.dealer.shuffled_deck
-        # self.move_sheet.append(DealHandMove(player_dealing=player_dealing, shuffled_deck=shuffled_deck))
 
-    def get_current_player(self) -> DummyPlayer or None:
-        current_player_id = self.current_player_id
-        return None if current_player_id is None else self.players[current_player_id]
+        self.dealer = Dealer(self.np_random)
 
-    def draw_card(self, action: DrawCardAction):
-        # when current_player takes DrawCardAction step, the move is recorded and executed
-        # current_player keeps turn
+        self.num_players = num_player
+
+        self.players = [ Player(i) for i in range(num_player)]
+        self.just_discard = []
+        self.depositable_cards = []
+
+    def draw_card(self):
         current_player = self.players[self.current_player_id]
         card = self.dealer.stock_pile.pop()
 
-        move = DrawCardMove(current_player, action=action, card=card)
-        self.move_sheet.append(move)
-        if self.add_action_call is not None:
-            self.add_action_call(move)
-        current_player.add_card_to_hand(card=card)
+        current_player.add_card_to_hand(card)
 
-    def takecard(self, action: TakeCardAction):
+    def deposit_card(self, rank_id):
         current_player = self.players[self.current_player_id]
-        rank_id = action.rank_id
-        cards = rank_2_meld(ID_2_ACTION[rank_id])
-        current_player.melds.append(cards)
+        cards = [int(c) for c  in ID_2_ACTION[rank_id].split(",")]
 
-        # hand_cards = []
-        for card in cards:
-            if card in current_player.hand:
-                current_player.hand.remove(card)
-                # hand_cards.append(card)
-
-
-        index = -1
-
-        # arr = np.array(self.dealer.discard_pile)
-        discard  = []
-        for card in cards:
-            if card in current_player.known_cards:
-                current_player.known_cards.remove(card)
-            if card in self.dealer.discard_pile:
-                discard.append(card)
-                i = self.dealer.discard_pile.index(card)
-                if index == - 1:
-                    index = i
-                else:
-                    index = i if i < index else index
-        # Bắt lỗi đánh ra cạ speto
-        # Nếu trong bộ bài ăn  có ít nhất 2 quân bài và có speto thì phạt thiền
-        if len(discard) > 2:
-            common_cards = set(self.dealer.speto_cards).intersection(cards) 
-
-            # tìm thằng đánh cuối cùng tạo ra cạ để phạt tiền
-            _tup = (None, None)
-            for (card_id, player_id, r) in self.dealer.top_discard:
-                if get_card(card_id) in discard:
-                    (_pid, _r ) = _tup
-                    if _pid is None:
-                        _tup = (player_id, r)
-                    else:
-                        if(_r > r):
-                            _tup = (player_id, r)
-            
-            (_p, _) = _tup
-
-            for i in range(len(common_cards)):
-                if _p is not None:
-                    self.players[_p].add_transation(-50)        
-
-        if index > -1:
-            card_get = self.dealer.discard_pile[index:]
-            # for card in card_get:
-            #     if card in self.dealer.top_discard:
-            #         self.dealer.top_discard.remove(card)
-            know_cards = list(set(card_get) - set(discard))
-            for c in know_cards:
-                current_player.add_card_to_hand(c)
-            current_player.known_cards = current_player.known_cards + know_cards
-            self.dealer.discard_pile = self.dealer.discard_pile[0: index]
-
-        move = TakeCardMove(current_player, action)
-        self.move_sheet.append(move)
-        if self.add_action_call is not None:
-            self.add_action_call(move)
-
-    def deposit_card(self, action: DepositCardAction):
-        current_player = self.players[self.current_player_id]
-        rank_id = action.rank_id
-
-        cards = rank_2_meld(ID_2_ACTION[rank_id])
-
-        card_deposit = None
-        for card in cards:
-            
+        
+        card_deposit = None 
+        for card in cards :
             if card in current_player.hand:
                 card_deposit = card
                 current_player.remove_card_from_hand(card_deposit)
@@ -120,84 +44,191 @@ class DummyRound:
                 if card_deposit in current_player.known_cards:
                     current_player.known_cards.remove(card_deposit)
 
-        if card_deposit is not None:
-            speto_cards = [s for s in self.dealer.speto_cards if s not in [card for player in self.players for meld in player.melds for card in meld] ]
-            if check_can_deposit_speto(cards, card_deposit, speto_cards):
-                current_player.add_transation(-40)
-
-
-        for meld in [meld  for player in self.players for meld in player.melds]:
-            if len(list(set(meld) - set(cards))) == 0:
-                meld.append(card_deposit)
-                break
-
-        move = DepositCardMove(current_player, action)
-        self.move_sheet.append(move)
-        if self.add_action_call is not None:
-            self.add_action_call(move)
-
-    def meld_card(self, action: MeldCardAction):
-        current_player = self.players[self.current_player_id]
-        rank_id = action.rank_id
-
-        cards = rank_2_meld(ID_2_ACTION[rank_id])
-
-        # Giả thiết, nếu hạ meld mà có thể gửi speto trừ 40
-        for c in self.dealer.speto_cards:
-            fcards = cards + [c]
-            if is_run_meld(fcards) or is_set_meld(fcards):
-                current_player.add_transation(-40)
-                break
-
-
-        for card in cards:
-            if card in current_player.known_cards:
-                current_player.known_cards.remove(card)
-            current_player.remove_card_from_hand(card)
+        self._caculate_depositable_cards()
+        #add card to meld
+        all_melds = [meld for p in self.players for meld in p.melds if sorted(meld) == sorted(cards)]
+        all_melds[0].append(card_deposit)
         
+
+        if card_deposit is not None:
+
+            #add to score cards
+            current_player.score_cards.append(card_deposit)
+
+            #Bộ mmeld vừa gủi vào có thể gửi thêm được speto, trừ điểm
+            speto_cards = [c for c in self.dealer.speto_cards if c not in [card for player in self.players for meld in player.melds for card in meld] and c not in current_player.hand]
+
+            for c in speto_cards:
+                can_deposit = False
+                meld_sort = sorted([c, card_deposit] + cards, key=lambda x: (get_suit_id(x), get_rank_id(x)))
+                if is_meld(meld_sort):
+                    if is_run_meld(meld_sort):
+                        if meld_sort[0] == c or meld_sort[-1] == c:
+                            can_deposit = True
+                    elif is_set_meld(meld_sort):
+                        can_deposit = True
+
+                if can_deposit:
+                    #TODO trừ điểm
+                    # print("trừ điểm 3")
+                    current_player.add_transation(-40)
+                    pass
+                    
+        
+
+    def meld_card(self, rank_id):
+        current_player = self.players[self.current_player_id]
+        cards = [int(c) for c  in ID_2_ACTION[rank_id].split(",")]
+
+        current_player.melds.append(cards)
+        #add to score cards
+        for c in cards:
+            current_player.score_cards.append(c)
+
+        for c in cards:
+            current_player.remove_card_from_hand(c)
+            if c in current_player.known_cards:
+                current_player.known_cards.remove(c)
+
+
+        self._caculate_depositable_cards()
+
+        # Giả thiết, nếu hạ meld mà có thể gửi speto trừ điểm
+        speto_cards = [c for c in self.dealer.speto_cards if c not in [card for player in self.players for meld in player.melds for card in meld] and c not in current_player.hand]
+        for c in speto_cards:
+            can_deposit = False
+            meld_sort = sorted(cards + [c], key=lambda x: (get_suit_id(x), get_rank_id(x)))
+            if is_meld(meld_sort):
+                if is_run_meld(meld_sort):
+                    if meld_sort[0] == c or meld_sort[-1] == c:
+                        can_deposit = True
+                elif is_set_meld(meld_sort):
+                    can_deposit = True
+
+                if can_deposit:
+                    #TODO trừ điểm
+                    # print("trừ điểm 2")
+                    current_player.add_transation(-40)
+                    
+    def take_card(self, rank_id):
+        current_player = self.players[self.current_player_id]
+        cards = [int(c) for c  in ID_2_ACTION[rank_id].split(",")]
+
+        #add to score cards
+        for c in cards:
+            current_player.score_cards.append(c)
+
+        cards_in_hand =  [c for c in cards if c in current_player.hand]
+        cards_in_discard = [c for c in cards if c in self.dealer.discard_pile]
+
+        for c in cards_in_discard:
+            if c in self.just_discard:
+                self.just_discard.remove(c)
+
         current_player.melds.append(cards)
 
-        move = MeldCardMove(current_player, action)
-        self.move_sheet.append(move)
-        if self.add_action_call is not None:
-            self.add_action_call(move)
+        for c in cards_in_hand:
+            current_player.remove_card_from_hand(c)
+            if c in current_player.known_cards:
+                current_player.known_cards.remove(c)
+
+        index = np.min(np.where(np.isin(self.dealer.discard_pile,cards_in_discard)))
+
+        cards_take_discard = [c for c in self.dealer.discard_pile[index:] if c not in cards_in_discard]
+        self.dealer.discard_pile = self.dealer.discard_pile[:index]
+
+        for c in cards_take_discard:
+            current_player.known_cards.append(c)
+            current_player.add_card_to_hand(c)
 
 
-    def discard(self, action: DiscardAction):
+        self._caculate_depositable_cards()
+
+        if current_player.knock_one_turn is None:
+            current_player.knock_one_turn = True
+
+         # Giả thiết, nếu hạ meld mà có thể gửi speto trừ điểm
+        speto_cards = [c for c in self.dealer.speto_cards if c not in [card for player in self.players for meld in player.melds for card in meld] and c not in current_player.hand]
+        for c in speto_cards:
+            can_deposit = False
+            meld_sort = sorted(cards + [c], key=lambda x: (get_suit_id(x), get_rank_id(x)))
+            if is_meld(meld_sort):
+                if is_run_meld(meld_sort):
+                    if meld_sort[0] == c or meld_sort[-1] == c :
+                        can_deposit = True
+                elif is_set_meld(meld_sort):
+                    can_deposit = True
+
+                if can_deposit:
+                    #TODO trừ điểm
+                    # print("trừ điểm 1")
+                    current_player.add_transation(-40)
+
+    def discard(self, card_id):
         current_player = self.players[self.current_player_id]
-        card = action.card
-        current_player.remove_card_from_hand(card=card)
-        if card in current_player.known_cards:
-            current_player.known_cards.remove(card)
-        self.dealer.discard_pile.append(card)
-        
-        self.dealer.top_discard = [(card_id, player_id, r+1) for (card_id, player_id, r)  in self.dealer.top_discard if r < self.num_players - 1]
-            
-        self.dealer.top_discard.append ((get_card_id(card), self.current_player_id, 0))
+        #remove card bai trên tay
+        current_player.remove_card_from_hand(card_id)
+
+        #Remove card lộ
+        if card_id in current_player.known_cards:
+            current_player.known_cards.remove(card_id)
+
+        #add vào bài dưới bàn
+        discard_pile_copy = self.dealer.discard_pile.copy()
+        self.dealer.discard_pile.append(card_id)
+
+
+        if len(self.just_discard) > 0:
+            self.just_discard.pop(0)
+        self.just_discard.append(card_id)
+
+        #Đổi lượt chơi
         self.current_player_id = (self.current_player_id + 1) % self.num_players
 
-        move = DiscardMove(current_player, action)
-        self.move_sheet.append(move)
-        if self.add_action_call is not None:
-            self.add_action_call(move)
+        if current_player.knock_one_turn:
+            current_player.knock_one_turn = False
 
-    def knock(self, action : KnockAction):
+        #Đánh bài lỗi trừ điểm
+        if card_id in self.depositable_cards:
+            #TODO trừ 50 điểm
+            current_player.add_transation(-50)
+            # print("trừ điểm 4")
+        all_melds = get_all_melds(self.dealer.discard_pile)
+        for meld in all_melds:
+            if card_id in meld:
+                #TODO trừ 50 điểm
+                current_player.add_transation(-50)
+                # print("trừ điểm 5")
+                break
+
+        all_score_card = [c for p in self.players for c in p.score_cards]
+        for l in find_potential_cards(discard_pile_copy, card_id, all_score_card):
+            cm = [c for c in l if c in self.dealer.speto_cards]
+            if len(cm) > 0:
+                current_player.add_transation(-30 * len(cm))
+
+
+
+    def knock(self, card_id):
         current_player = self.players[self.current_player_id]
-        card = action.card
-        if card is not None:
-            current_player.remove_card_from_hand(action.card)
-            #add score if card có thể gửi
-            if card  in self.dealer.speto_cards:
+        if card_id == 52:
+            #hhet loc
+            pass
+        else:
+            current_player.remove_card_from_hand(card_id)
+            if card_id in self.depositable_cards or card_id in self.dealer.speto_cards:
                 current_player.add_transation(50)
-            else:
-                all_melds = [meld + [card] for player in self.players for meld in player.melds]
-                for meld in all_melds:
-                    if is_meld(meld):
-                        current_player.add_transation(50)
-                        break
-        
-        move = KnockMove(current_player, action)
-        self.move_sheet.append(move)
-        if self.add_action_call is not None:
-            self.add_action_call(move)
+            current_player.add_transation(50)
+
+            if current_player.knock_one_turn:
+                current_player.add_transation(50)
+            
         self.is_over = True
+
+    def _caculate_depositable_cards(self):
+        all_melds = [meld for p in self.players for meld in p.melds]
+
+        self.depositable_cards = caculate_depositable_cards(all_melds.copy())
+
+
+

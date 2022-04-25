@@ -22,7 +22,8 @@ def train(args):
                          num_actor_devices=args.num_actor_devices,
                          num_actors=args.num_actors,
                          training_device=args.training_device,
-                         total_frames=args.total_frames)
+                         total_frames=args.total_frames,
+                         learning_rate=args.learning_rate)
 
     # Train DMC Agents
     trainer.start()
@@ -48,6 +49,8 @@ if __name__ == '__main__':
                         help='The index of the GPU used for training models')
     parser.add_argument('--total_frames', default=1000000, type=int,
                         help='Total Frames')
+    parser.add_argument('--learning_rate', default=0.0001, type=float,
+                        help='Learning rate')
 
     args = parser.parse_args()
 

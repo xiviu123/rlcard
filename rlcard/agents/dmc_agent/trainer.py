@@ -59,7 +59,7 @@ def learn(position,
             'loss_'+str(position): loss.item(),
         }
 
-        optimizer.zero_grad(set_to_none=True)
+        optimizer.zero_grad()
         loss.backward()
         nn.utils.clip_grad_norm_(agent.parameters(), max_grad_norm)
         optimizer.step()

@@ -52,3 +52,9 @@ register(
     env_id='dummy',
     entry_point='rlcard.envs.dummy:DummyEnv',
 )
+
+
+register(
+    env_id='tienlen',
+    entry_point='rlcard.envs.tienlen:TienlenEnv',
+)

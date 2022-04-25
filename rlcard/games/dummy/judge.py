@@ -1,120 +1,122 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from rlcard.games.dummy.player import DummyPlayer
-from rlcard.games.dummy.utils import get_deadwood_value
-
-from .action_event import ActionEvent, DepositCardAction, DiscardAction, DrawCardAction,  KnockAction, MeldCardAction, TakeCardAction
 if TYPE_CHECKING:
     from .game import DummyGame
-from .melding import get_all_melds, check_can_deposit
-from .utils import meld_2_rank
+import numpy as np
 
-
+from rlcard.games.dummy.action_event import ACTION, get_action
+from rlcard.games.dummy.utils import ID_2_ACTION
+from .melding import *
+from rlcard.games.dummy.action_event import draw_card_action_id, take_card_action_id, discard_action_id, deposit_card_action_id, meld_card_action_id, knock_action_id
 class DummyJudge:
     def __init__(self, game: 'DummyGame') -> None:
         self.game = game
 
-    def get_legal_actions(self) -> List[ActionEvent]:
+    def  get_legal_actions(self):
         legal_actions  = []
         last_action = self.game.get_last_action()
-        current_player = self.game.get_current_player()
-        hand = current_player.hand
-
-        if last_action is None or isinstance(last_action, DiscardAction):
-            # Bốc bài DrawCardAction
-            if len(self.game.round.dealer.stock_pile) > 0:
-                legal_actions.append(DrawCardAction())
-
-        if last_action is None or isinstance(last_action, DiscardAction):
-            # Ăn bài TakeCardAction
-
-            temp_hand = hand + self.game.round.dealer.discard_pile
-            clusters = get_all_melds(temp_hand)
-            
-            for cluster in clusters:
-                hand_card = [] 
-                discard = []
-
-                for card in cluster:
-                    if card in hand:
-                        hand_card.append(card)
-                    else:
-                        discard.append(card)
-                
-                if len(hand_card) < len(cluster) and len(hand_card) > 0 and len(hand_card) < len(hand):
-                    legal_actions.append(TakeCardAction(meld_2_rank(hand_card+discard)))
-
-        if  isinstance(last_action, DrawCardAction) or \
-            isinstance(last_action, DepositCardAction) or \
-            isinstance(last_action, MeldCardAction) or \
-            isinstance(last_action, TakeCardAction): 
-            # Dánh bài DiscardAction
-
-
-            cards_to_discard = [card for card in hand]
-            discard_actions = [DiscardAction(card=card) for card in cards_to_discard]
-            legal_actions = legal_actions + discard_actions
-
-
-        if isinstance(last_action, DrawCardAction) or \
-            isinstance(last_action, TakeCardAction) or \
-            isinstance(last_action, MeldCardAction) or \
-            isinstance(last_action, DepositCardAction):
-            #Hạ bài MeldCardAction
-
-            if len(hand) > 3 and len(current_player.melds) > 0:
-            
-                clusters = get_all_melds(hand)
-                
-                for cluster in clusters:
-                    if len(cluster) < len(hand): 
-                        legal_actions.append(MeldCardAction(meld_2_rank(cluster)))
-
-        if isinstance(last_action, DrawCardAction) or \
-            isinstance(last_action, TakeCardAction) or \
-            isinstance(last_action, DepositCardAction) or \
-            isinstance(last_action, MeldCardAction) :
-            #Guiwr baif DepositCardAction
-            if len(hand) > 1 and len(current_player.melds) > 0:
-           
-                for card in hand:
-                    for meld in [meld for player in self.game.round.players for meld in player.melds]:
-                        if check_can_deposit(card, meld):
-                            legal_actions.append(DepositCardAction(meld_2_rank(meld + [card])))
+        current_player = self.game.round.players[self.game.round.current_player_id]
+        current_hand = current_player.hand
+        all_melds = [meld for p in self.game.round.players for meld in p.melds]
+        current_melds = self.game.round.players[self.game.round.current_player_id].melds
+        num_stoke_pile = len(self.game.round.dealer.stock_pile)
+        discard_pile = self.game.round.dealer.discard_pile
         
+        (action, _) = get_action(last_action)
+
+        if last_action is None or action == ACTION.DISCARD_ACTION:
+            #draw
+            if num_stoke_pile > 0:
+                legal_actions.append(draw_card_action_id)
             
-        if isinstance(last_action, MeldCardAction) or \
-            isinstance(last_action, DepositCardAction) or \
-            isinstance(last_action, TakeCardAction):
+        if last_action is None or action == ACTION.DISCARD_ACTION:
+            #take
+            temp_hand = current_hand + discard_pile
+            _melds = get_all_melds(temp_hand)
+            for meld in _melds:
+                hand_card = [card for card in meld if card in current_hand]
+                arr_index = np.array(np.where(np.isin(discard_pile, meld))).tolist()[0]
+                take_card = []
+                if len(arr_index) > 0:
+                    index = np.min(arr_index)
+                    take_card =  [c for c in discard_pile[index:] if c not in meld]
 
-            # Ù KnockAction
-            if len(hand) == 1:
-                return [KnockAction(hand[0])]
+                if len(hand_card) > 0 and len(hand_card) < len(meld) and len(hand_card) < len(current_hand) + len(take_card):
+                    #add action
+                    ranks  = ",".join([str(c) for c in sorted(meld, key=lambda x: (get_rank_id(x), get_suit_id(x)))])
+                    legal_actions.append(ID_2_ACTION.index(ranks) + take_card_action_id)
 
+        if action == ACTION.DRAW_CARD_ACTION or \
+            action == ACTION.DEPOSIT_CARD_ACTION or \
+            action == ACTION.MELD_CARD_ACTION or \
+            action == ACTION.TAKE_CARD_ACTION:
 
-        if isinstance(last_action, DiscardAction):
-            if len(self.game.round.dealer.stock_pile) == 0:
-                #game over
-                return [KnockAction(None)]
-        # return [KnockAction(None)]
+            #discard
+            discard_actions = [card_id + discard_action_id for card_id in current_hand]
+            legal_actions = discard_actions + legal_actions
 
-        if len(legal_actions) == 0:
-            if not isinstance(last_action, KnockAction):
-                print(last_action, ",".join([c.get_index() for c in hand]))
-            # print("sao lai chay vao day: {}: {}".format(len(self.game.round.dealer.stock_pile), last_action.__str__()))
-            # return [KnockAction(None)]
+        if action == ACTION.DRAW_CARD_ACTION or \
+            action == ACTION.DEPOSIT_CARD_ACTION or \
+            action == ACTION.MELD_CARD_ACTION or \
+            action == ACTION.TAKE_CARD_ACTION:
+            #meld
+
+            if len(current_hand) > 3 and len(current_melds)> 0:
+                __melds = get_all_melds(current_hand)
+                for meld in __melds:
+                    if len(meld) < len(current_hand): 
+                        ranks  = ",".join([str(c) for c in sorted(meld, key=lambda x: (get_rank_id(x), get_suit_id(x)))])
+                        legal_actions.append(ID_2_ACTION.index(ranks) + meld_card_action_id)
+
+        if action == ACTION.DRAW_CARD_ACTION or \
+            action == ACTION.DEPOSIT_CARD_ACTION or \
+            action == ACTION.MELD_CARD_ACTION or \
+            action == ACTION.TAKE_CARD_ACTION:
+            #deposit
+            if len(current_hand) > 1 and len(current_melds) > 0:
+                for card_id in current_hand:
+                    for meld in all_melds:
+                        meld_check = meld + [card_id]
+                        if is_meld(meld_check):
+                            ranks  = ",".join([str(c) for c in sorted(meld_check, key=lambda x: (get_rank_id(x), get_suit_id(x)))])
+                            legal_actions.append(ID_2_ACTION.index(ranks) + deposit_card_action_id)
+
+        if action == ACTION.DEPOSIT_CARD_ACTION  or\
+            action == ACTION.MELD_CARD_ACTION or \
+            action == ACTION.TAKE_CARD_ACTION:
+            
+            if len(current_hand) == 1:
+                return [knock_action_id + current_hand[0]]
+
+        if  action == ACTION.DISCARD_ACTION:
+            if num_stoke_pile == 0:
+                return [knock_action_id + 52]
+        
         return legal_actions
 
     def get_payoffs(self):
-        payoffs = [0, 0]
+        payoffs = [0 for _ in range(self.game.get_num_players())]
         for i in range(self.game.get_num_players()):
             player = self.game.round.players[i]
             payoff = self.get_payoff(player)
             payoffs[i] = payoff
-        return payoffs 
-    
+        return payoffs
+        # return payoffs if payoffs == [0, 0] else np.divide(payoffs, np.abs(payoffs).max()) 
+
     def get_payoff(self, player: DummyPlayer):
-        deadwood_score =  -sum([get_deadwood_value(card, self.game.round.dealer.speto_cards) for card in player.hand])
-        meld_score = sum([get_deadwood_value(card, self.game.round.dealer.speto_cards) for meld in player.melds for card in meld])
+        deadwood_score =  -sum([_get_deadwood_value(card, self.game.round.dealer.speto_cards) for card in player.hand])
+        card_score = sum([_get_deadwood_value(card, self.game.round.dealer.speto_cards) for card in player.score_cards])
+        if card_score == 0:
+            deadwood_score *= 2
         tran_score = sum(player.transactions)
-        return deadwood_score + meld_score + tran_score
+        return (deadwood_score + card_score + tran_score) / 500
+
+rank_to_deadwood_value = {"A": 15, "2": 5, "3": 5, "4": 5, "5": 5, "6": 5, "7": 5, "8": 5, "9": 5,
+                          "T": 10, "J": 10, "Q": 10, "K": 10}
+def _get_deadwood_value(card, speto_cards):
+    (rank_id, _) = get_card(card)
+    deadwood_value = rank_to_deadwood_value.get(RANK_STR[rank_id], 10)  # default to 10 is key does not exist
+    if card in speto_cards:
+        deadwood_value  = deadwood_value + 50
+    return deadwood_value
